@@ -44,3 +44,15 @@ signed webhook, deduplication, approval, polling, and delivery-state model as
 email. STOP-family keywords immediately block every outbound SMS; START-family
 keywords restore opt-in. Marketing requires explicit opt-in, while transactional
 templates may send to an unknown preference but never after an opt-out.
+
+## Unified Inbox
+
+The **Inbox** workspace combines tenant-scoped email, SMS, web, and technician
+messages into one triage queue. Open and pending conversations are ordered by
+SLA state and age, with filters for channel and assignment. Operators can assign
+or close threads, correct classifications and customer links, create a service
+request, and reply through the existing approved email/SMS delivery flows.
+
+Corrections are recorded in **Field OS Inbox Correction** so operator feedback
+can be used by the later AI evaluation work without silently changing model
+behavior. Overdue and unassigned conversations also surface on **Today**.

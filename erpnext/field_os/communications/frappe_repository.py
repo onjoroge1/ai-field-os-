@@ -95,6 +95,23 @@ class FrappeCommunicationRepository:
 			doc.insert()
 		return self._thread(doc)
 
+	def list_threads(self, company, *, states=(), channel=None, assigned_to=None, limit=50):
+		filters = {"company": company}
+		if states:
+			filters["status"] = ["in", list(states)]
+		if channel:
+			filters["channel"] = channel.value
+		if assigned_to is not None:
+			filters["assigned_to"] = ["in", ["", None]] if assigned_to == "" else assigned_to
+		names = frappe.get_all(
+			"Field OS Communication Thread",
+			filters=filters,
+			pluck="name",
+			order_by="last_message_at desc, modified desc",
+			limit=max(1, min(limit, 100)),
+		)
+		return [self._thread(frappe.get_doc("Field OS Communication Thread", name)) for name in names]
+
 	def find_message_by_dedupe(self, company, dedupe_key):
 		name = frappe.db.get_value(
 			"Field OS Communication Message", {"company": company, "dedupe_key": dedupe_key}, "name"

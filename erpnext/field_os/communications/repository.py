@@ -22,6 +22,17 @@ class CommunicationRepository(Protocol):
 	def save_thread(self, thread: CommunicationThread) -> CommunicationThread:
 		...
 
+	def list_threads(
+		self,
+		company: str,
+		*,
+		states: tuple[str, ...] = (),
+		channel: CommunicationChannel | None = None,
+		assigned_to: str | None = None,
+		limit: int = 50,
+	) -> list[CommunicationThread]:
+		...
+
 	def find_message_by_dedupe(self, company: str, dedupe_key: str) -> CommunicationMessage | None:
 		...
 
