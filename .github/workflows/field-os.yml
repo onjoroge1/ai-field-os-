@@ -1,0 +1,25 @@
+name: Field OS
+
+on:
+  pull_request:
+    paths:
+      - "erpnext/field_os/**"
+      - ".github/workflows/field-os.yml"
+  push:
+    branches: [develop]
+    paths:
+      - "erpnext/field_os/**"
+
+permissions:
+  contents: read
+
+jobs:
+  field-os-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Compile Field OS Python
+        run: python -m compileall -q erpnext/field_os
