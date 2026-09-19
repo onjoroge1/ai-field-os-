@@ -39,6 +39,7 @@ class FieldOSApp {
 
 	bind() {
 		let timer;
+		let customerTimer;
 		this.root.on("input", '[data-role="search"]', (event) => {
 			clearTimeout(timer);
 			timer = setTimeout(() => this.search(event.target.value), 220);
@@ -49,6 +50,7 @@ class FieldOSApp {
 			$(event.currentTarget).addClass("is-active");
 			if (this.activeView === "today") this.loadToday();
 			else if (this.activeView === "ask") this.renderAsk();
+			else if (this.activeView === "customers") this.renderCustomers();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
@@ -65,6 +67,13 @@ class FieldOSApp {
 		);
 		this.root.on("click", '[data-action="reject-proposal"]', (event) =>
 			this.rejectProposal(event.currentTarget.dataset.proposal)
+		);
+		this.root.on("input", '[data-role="customer-search"]', (event) => {
+			clearTimeout(customerTimer);
+			customerTimer = setTimeout(() => this.searchCustomers(event.target.value), 220);
+		});
+		this.root.on("click", "[data-customer]", (event) =>
+			this.loadCustomer(event.currentTarget.dataset.customer)
 		);
 	}
 
@@ -285,6 +294,136 @@ class FieldOSApp {
 			});
 		this.conversationId = null;
 		this.renderAsk();
+	}
+
+	renderCustomers() {
+		this.setHeading(__("Customers"));
+		this.content().html(`
+			<div class="field-os__customer-finder">
+				<div><p class="field-os__eyebrow">CUSTOMER · SITE · EQUIPMENT</p><h2>${__(
+					"One operational history"
+				)}</h2><p>${__(
+			"Search for a customer to see open work, equipment, quotes, invoices, and every important event."
+		)}</p></div>
+				<input data-role="customer-search" placeholder="${__("Search customer name…")}">
+				<div data-role="customer-results" class="field-os__customer-results"></div>
+			</div>`);
+	}
+
+	async searchCustomers(query) {
+		const panel = this.root.find('[data-role="customer-results"]');
+		if (query.trim().length < 2) return panel.empty();
+		panel.html(`<span>${__("Searching…")}</span>`);
+		const response = await frappe.call("erpnext.field_os.api.operator.global_search", {
+			company: this.company,
+			query,
+			limit: 12,
+		});
+		const customers = (response.message || []).filter((item) => item.kind === "customer");
+		panel.html(
+			customers.length
+				? customers
+						.map(
+							(item) =>
+								`<button data-customer="${frappe.utils.escape_html(
+									item.record.record_id
+								)}"><span>◎</span><strong>${frappe.utils.escape_html(
+									item.title
+								)}</strong><small>${frappe.utils.escape_html(
+									item.subtitle
+								)}</small><b>→</b></button>`
+						)
+						.join("")
+				: `<span>${__("No tenant customers found.")}</span>`
+		);
+	}
+
+	async loadCustomer(customerId) {
+		this.setLoading();
+		try {
+			const response = await frappe.call("erpnext.field_os.api.customers.customer_360", {
+				company: this.company,
+				customer_id: customerId,
+			});
+			this.renderCustomer360(response.message);
+		} catch (error) {
+			this.renderError(error.message || __("Customer history could not load."));
+		}
+	}
+
+	renderCustomer360(data) {
+		const customer = data.customer;
+		const recordList = (items, doctype, empty) =>
+			items.length
+				? items
+						.map(
+							(item) =>
+								`<button data-doctype="${doctype}" data-name="${frappe.utils.escape_html(
+									item.id
+								)}"><strong>${frappe.utils.escape_html(
+									item.id
+								)}</strong><small>${frappe.utils.escape_html(
+									item.status || item.title || item.item_code || ""
+								)}</small><span>→</span></button>`
+						)
+						.join("")
+				: `<p class="text-muted">${empty}</p>`;
+		const timeline = data.timeline.length
+			? data.timeline
+					.map(
+						(item) =>
+							`<button class="field-os__timeline-item" data-doctype="${
+								item.doctype
+							}" data-name="${frappe.utils.escape_html(item.record_id)}"><span class="kind-${
+								item.kind
+							}"></span><div><strong>${frappe.utils.escape_html(
+								item.title
+							)}</strong><small>${frappe.utils.escape_html(
+								item.summary
+							)}</small></div><time>${frappe.utils.escape_html(
+								item.occurred_on || __("No date")
+							)}</time></button>`
+					)
+					.join("")
+			: `<p class="text-muted">${__("No operational history yet.")}</p>`;
+		this.content().html(`
+			<div class="field-os__customer-head"><button class="btn btn-default btn-xs" data-view="customers">← ${__(
+				"Customers"
+			)}</button><div><p class="field-os__eyebrow">CUSTOMER 360</p><h2>${frappe.utils.escape_html(
+			customer.name
+		)}</h2><p>${frappe.utils.escape_html(customer.email || __("No email"))} · ${frappe.utils.escape_html(
+			customer.phone || __("No phone")
+		)}</p></div><div><span>${__("Outstanding")}</span><strong>${frappe.utils.escape_html(
+			String(data.total_outstanding)
+		)}</strong></div></div>
+			<div class="field-os__metrics field-os__metrics--three"><article class="tone-blue"><span>${__(
+				"Open work"
+			)}</span><strong>${
+			data.open_work.length
+		}</strong></article><article class="tone-violet"><span>${__("Open quotes")}</span><strong>${
+			data.open_quotes.length
+		}</strong></article><article class="tone-red"><span>${__("Open invoices")}</span><strong>${
+			data.open_invoices.length
+		}</strong></article></div>
+			<div class="field-os__customer-grid">
+				<section><div class="field-os__section-title"><h2>${__("Sites")}</h2><span>${
+			data.sites.length
+		}</span></div><div class="field-os__record-list">${recordList(
+			data.sites,
+			"Address",
+			__("No sites")
+		)}</div></section>
+				<section><div class="field-os__section-title"><h2>${__("Equipment")}</h2><span>${
+			data.equipment.length
+		}</span></div><div class="field-os__record-list">${recordList(
+			data.equipment,
+			"Serial No",
+			__("No equipment")
+		)}</div></section>
+				<section class="field-os__timeline"><div class="field-os__section-title"><h2>${__(
+					"Unified timeline"
+				)}</h2><span>${data.timeline.length}</span></div>${timeline}</section>
+			</div>`);
 	}
 
 	async search(query) {
