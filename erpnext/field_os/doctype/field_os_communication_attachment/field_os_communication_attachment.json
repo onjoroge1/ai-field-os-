@@ -1,0 +1,26 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["filename", "content_type", "size_bytes", "file", "external_url"],
+ "fields": [
+  {"fieldname": "filename", "fieldtype": "Data", "in_list_view": 1, "label": "Filename", "reqd": 1},
+  {"fieldname": "content_type", "fieldtype": "Data", "in_list_view": 1, "label": "Content Type", "reqd": 1},
+  {"fieldname": "size_bytes", "fieldtype": "Int", "label": "Size (bytes)", "non_negative": 1},
+  {"fieldname": "file", "fieldtype": "Link", "label": "File", "options": "File"},
+  {"fieldname": "external_url", "fieldtype": "Data", "label": "External URL"}
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-19 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Communication Attachment",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
