@@ -45,6 +45,16 @@ class MemoryCommunicationRepository:
 		self.threads[(thread.company, thread.id)] = thread
 		return thread
 
+	def list_threads(self, company, *, states=(), channel=None, assigned_to=None, limit=50):
+		items = [thread for (tenant, _), thread in self.threads.items() if tenant == company]
+		if states:
+			items = [thread for thread in items if thread.state.value in states]
+		if channel:
+			items = [thread for thread in items if thread.channel == channel]
+		if assigned_to is not None:
+			items = [thread for thread in items if thread.assigned_to == assigned_to]
+		return items[:limit]
+
 	def find_message_by_dedupe(self, company, dedupe_key):
 		return next(
 			(

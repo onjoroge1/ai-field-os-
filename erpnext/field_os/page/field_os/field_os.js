@@ -52,11 +52,15 @@ class FieldOSApp {
 			else if (this.activeView === "ask") this.renderAsk();
 			else if (this.activeView === "customers") this.renderCustomers();
 			else if (this.activeView === "dispatch") this.renderDispatch();
+			else if (this.activeView === "inbox") this.renderInbox();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
 			frappe.set_route("Form", event.currentTarget.dataset.doctype, event.currentTarget.dataset.name);
 		});
+		this.root.on("click", "[data-open-inbox]", (event) =>
+			this.openInbox(event.currentTarget.dataset.openInbox)
+		);
 		this.root.on("submit", '[data-role="ask-form"]', (event) => {
 			event.preventDefault();
 			this.ask($(event.currentTarget).find("textarea").val());
@@ -81,6 +85,25 @@ class FieldOSApp {
 		);
 		this.root.on("click", "[data-move-job]", (event) =>
 			this.openDispatchChange(event.currentTarget.dataset.moveJob)
+		);
+		this.root.on("change", '[data-role="inbox-filter"]', () => this.loadInbox());
+		this.root.on("click", "[data-inbox-thread]", (event) =>
+			this.loadInboxThread(event.currentTarget.dataset.inboxThread)
+		);
+		this.root.on("click", "[data-inbox-action]", (event) =>
+			this.handleInboxAction(
+				event.currentTarget.dataset.inboxAction,
+				event.currentTarget.dataset.thread
+			)
+		);
+		this.root.on("click", "[data-assign-thread]", (event) =>
+			this.openInboxAssignment(event.currentTarget.dataset.assignThread)
+		);
+		this.root.on("click", "[data-thread-state]", (event) =>
+			this.setInboxState(event.currentTarget.dataset.thread, event.currentTarget.dataset.threadState)
+		);
+		this.root.on("change", '[data-role="classification"]', (event) =>
+			this.correctInbox(event.currentTarget.dataset.thread, "classification", event.target.value)
 		);
 	}
 
@@ -158,11 +181,13 @@ class FieldOSApp {
 
 	attentionCard(item) {
 		const due = item.due_at ? frappe.datetime.prettyDate(item.due_at) : __("Open");
-		return `<button class="field-os__attention-card severity-${
-			item.severity
-		}" data-doctype="${frappe.utils.escape_html(
-			item.record.doctype
-		)}" data-name="${frappe.utils.escape_html(item.record.record_id)}">
+		const target =
+			item.kind === "inbox"
+				? `data-open-inbox="${frappe.utils.escape_html(item.record.record_id)}"`
+				: `data-doctype="${frappe.utils.escape_html(
+						item.record.doctype
+				  )}" data-name="${frappe.utils.escape_html(item.record.record_id)}"`;
+		return `<button class="field-os__attention-card severity-${item.severity}" ${target}>
 			<span class="field-os__signal"></span><span class="field-os__attention-copy"><strong>${frappe.utils.escape_html(
 				item.title
 			)}</strong><small>${frappe.utils.escape_html(
@@ -574,6 +599,420 @@ class FieldOSApp {
 			},
 		});
 		dialog.show();
+	}
+
+	openInbox(threadId) {
+		this.activeView = "inbox";
+		this.root.find("[data-view]").removeClass("is-active");
+		this.root.find('[data-view="inbox"]').addClass("is-active");
+		this.renderInbox(threadId);
+	}
+
+	renderInbox(threadId = null) {
+		this.setHeading(__("Inbox"));
+		this.content().html(`
+			<div class="field-os__inbox-toolbar">
+				<div><p class="field-os__eyebrow">EMAIL · SMS · WEB · FIELD</p><h2>${__("Operational Inbox")}</h2></div>
+				<div><select data-role="inbox-filter" data-filter="channel"><option value="">${__(
+					"All channels"
+				)}</option><option value="email">Email</option><option value="sms">SMS</option><option value="web">Web</option><option value="technician_note">${__(
+			"Technician notes"
+		)}</option></select><select data-role="inbox-filter" data-filter="assignment"><option value="all">${__(
+			"Everyone"
+		)}</option><option value="mine">${__("Mine")}</option><option value="unassigned">${__(
+			"Unassigned"
+		)}</option></select></div>
+			</div>
+			<div class="field-os__inbox"><section><div class="field-os__inbox-counts" data-role="inbox-counts"></div><div class="field-os__inbox-list" data-role="inbox-list"><div class="field-os__loading">${__(
+				"Loading Inbox…"
+			)}</div></div></section><section class="field-os__thread-pane" data-role="thread-pane"><div class="field-os__empty"><strong>${__(
+			"Choose a conversation"
+		)}</strong><span>${__("Messages and suggested actions appear here.")}</span></div></section></div>`);
+		this.loadInbox(threadId);
+	}
+
+	async loadInbox(preferredThreadId = null) {
+		const channel = this.root.find('[data-filter="channel"]').val() || null;
+		const assignment = this.root.find('[data-filter="assignment"]').val() || "all";
+		try {
+			const response = await frappe.call("erpnext.field_os.api.inbox.queue", {
+				company: this.company,
+				channel,
+				assignment,
+			});
+			const data = response.message;
+			this.inboxData = data;
+			this.root
+				.find('[data-role="inbox-counts"]')
+				.html(
+					`<span>${data.counts.total || 0} ${__("open")}</span><span class="is-overdue">${
+						data.counts.overdue || 0
+					} ${__("overdue")}</span><span>${data.counts.unassigned || 0} ${__("unassigned")}</span>`
+				);
+			this.root
+				.find('[data-role="inbox-list"]')
+				.html(
+					data.items.length
+						? data.items.map((item) => this.inboxListItem(item)).join("")
+						: `<div class="field-os__empty"><strong>${__("Inbox clear")}</strong><span>${__(
+								"No conversations match these filters."
+						  )}</span></div>`
+				);
+			const selectedThread = preferredThreadId || (data.items.length ? data.items[0].thread.id : null);
+			if (selectedThread) this.loadInboxThread(selectedThread);
+		} catch (error) {
+			this.root
+				.find('[data-role="inbox-list"]')
+				.html(
+					`<div class="field-os__error"><strong>${__(
+						"Inbox unavailable"
+					)}</strong><span>${frappe.utils.escape_html(error.message)}</span></div>`
+				);
+		}
+	}
+
+	inboxListItem(item) {
+		const message = item.latest_message;
+		const preview = message ? message.body.slice(0, 115) : __("No messages yet");
+		const age =
+			item.age_seconds < 3600
+				? `${Math.max(1, Math.floor(item.age_seconds / 60))}m`
+				: item.age_seconds < 86400
+				? `${Math.floor(item.age_seconds / 3600)}h`
+				: `${Math.floor(item.age_seconds / 86400)}d`;
+		return `<button class="field-os__inbox-item sla-${
+			item.sla_state
+		}" data-inbox-thread="${frappe.utils.escape_html(
+			item.thread.id
+		)}"><span class="field-os__channel channel-${frappe.utils.escape_html(item.thread.channel)}">${
+			item.thread.channel === "email" ? "✉" : item.thread.channel === "sms" ? "▣" : "•"
+		}</span><span><strong>${frappe.utils.escape_html(
+			item.thread.subject
+		)}</strong><small>${frappe.utils.escape_html(preview)}</small><em>${frappe.utils.escape_html(
+			item.thread.classification || __("unclassified")
+		)}${
+			item.thread.assigned_to
+				? ` · ${frappe.utils.escape_html(item.thread.assigned_to)}`
+				: ` · ${__("unassigned")}`
+		}</em></span><time>${age}</time></button>`;
+	}
+
+	async loadInboxThread(threadId) {
+		this.selectedThread = threadId;
+		this.root.find("[data-inbox-thread]").removeClass("is-active");
+		this.root.find(`[data-inbox-thread="${threadId}"]`).addClass("is-active");
+		const pane = this.root
+			.find('[data-role="thread-pane"]')
+			.html(`<div class="field-os__loading">${__("Loading conversation…")}</div>`);
+		try {
+			const response = await frappe.call("erpnext.field_os.api.inbox.thread", {
+				company: this.company,
+				thread_id: threadId,
+			});
+			this.renderInboxThread(response.message);
+		} catch (error) {
+			pane.html(
+				`<div class="field-os__error"><strong>${__(
+					"Conversation unavailable"
+				)}</strong><span>${frappe.utils.escape_html(error.message)}</span></div>`
+			);
+		}
+	}
+
+	renderInboxThread(data) {
+		const thread = data.thread;
+		const classifications = [
+			"general",
+			"service_request",
+			"billing",
+			"safety_emergency",
+			"spam",
+			"consent",
+		];
+		const messages = data.messages
+			.map(
+				(message) =>
+					`<article class="field-os__message direction-${
+						message.direction
+					}"><header><strong>${frappe.utils.escape_html(
+						message.sender.display_name || message.sender.address
+					)}</strong><time>${frappe.datetime.prettyDate(
+						message.occurred_at
+					)}</time></header><p>${frappe.utils.escape_html(
+						message.body
+					)}</p><footer><span>${frappe.utils.escape_html(
+						message.channel
+					)}</span><span class="delivery-${message.delivery_state}">${frappe.utils.escape_html(
+						message.delivery_state
+					)}</span>${
+						message.attachments.length ? `<span>📎 ${message.attachments.length}</span>` : ""
+					}</footer></article>`
+			)
+			.join("");
+		const threadId = frappe.utils.escape_html(thread.id);
+		const suggestions = data.suggestions
+			.map(
+				(action) =>
+					`<button data-inbox-action="${frappe.utils.escape_html(
+						action.kind
+					)}" data-thread="${threadId}">${frappe.utils.escape_html(action.label)}</button>`
+			)
+			.join("");
+		this.root.find('[data-role="thread-pane"]').html(`
+			<header class="field-os__thread-head"><div><p class="field-os__eyebrow">${frappe.utils.escape_html(
+				thread.channel.toUpperCase()
+			)} · ${frappe.utils.escape_html(thread.state.toUpperCase())}</p><h2>${frappe.utils.escape_html(
+			thread.subject
+		)}</h2><span>${
+			thread.assigned_to
+				? `${__("Assigned to")} ${frappe.utils.escape_html(thread.assigned_to)}`
+				: __("Unassigned")
+		}</span></div><div><button class="btn btn-default btn-xs" data-assign-thread="${threadId}">${
+			thread.assigned_to ? __("Reassign") : __("Assign")
+		}</button><button class="btn btn-default btn-xs" data-thread-state="${
+			thread.state === "closed" ? "open" : "closed"
+		}" data-thread="${threadId}">${
+			thread.state === "closed" ? __("Reopen") : __("Close")
+		}</button></div></header>
+			<div class="field-os__thread-context"><label>${__(
+				"Classification"
+			)} <select data-role="classification" data-thread="${threadId}">${classifications
+			.map(
+				(value) =>
+					`<option value="${value}" ${
+						value === thread.classification ? "selected" : ""
+					}>${value.replaceAll("_", " ")}</option>`
+			)
+			.join("")}</select></label>${
+			thread.links.customer_id
+				? `<button data-customer="${frappe.utils.escape_html(
+						thread.links.customer_id
+				  )}">◎ ${frappe.utils.escape_html(thread.links.customer_id)}</button>`
+				: `<span>${__("No customer linked")}</span>`
+		}${
+			thread.links.service_request_id
+				? `<button data-doctype="Issue" data-name="${frappe.utils.escape_html(
+						thread.links.service_request_id
+				  )}">↗ ${frappe.utils.escape_html(thread.links.service_request_id)}</button>`
+				: ""
+		}</div>
+			<div class="field-os__messages">${messages || `<p class="text-muted">${__("No messages")}</p>`}</div>
+			<div class="field-os__suggestions"><p class="field-os__eyebrow">${__("SUGGESTED ACTIONS")}</p><div>${
+			suggestions || `<span>${__("No suggestions")}</span>`
+		}</div></div>`);
+	}
+
+	async handleInboxAction(action, threadId) {
+		try {
+			if (action === "assign") {
+				await frappe.call("erpnext.field_os.api.inbox.assign", {
+					company: this.company,
+					thread_id: threadId,
+					user: this.session.user,
+					idempotency_key: this.actionKey("assign", threadId),
+				});
+				this.loadInbox();
+			} else if (action === "reply") {
+				this.openInboxReply(threadId);
+			} else if (action === "correct") {
+				this.openCustomerCorrection(threadId);
+			} else if (action === "create_request") {
+				await frappe.call("erpnext.field_os.api.inbox.create_service_request", {
+					company: this.company,
+					thread_id: threadId,
+					idempotency_key: this.actionKey("request", threadId),
+				});
+				frappe.show_alert({ message: __("Service request created"), indicator: "green" });
+				this.loadInboxThread(threadId);
+			} else if (action === "escalate") {
+				const item = (this.inboxData.items || []).find(
+					(candidate) => candidate.thread.id === threadId
+				);
+				if (item && item.thread.assigned_to && item.thread.assigned_to !== this.session.user) {
+					frappe.msgprint({
+						title: __("Safety issue already assigned"),
+						message: `${__("Assigned to")} ${frappe.utils.escape_html(item.thread.assigned_to)}`,
+						indicator: "orange",
+					});
+					return;
+				}
+				await frappe.call("erpnext.field_os.api.inbox.assign", {
+					company: this.company,
+					thread_id: threadId,
+					user: this.session.user,
+					idempotency_key: this.actionKey("escalate", threadId),
+				});
+				frappe.show_alert({ message: __("Safety issue assigned to you"), indicator: "orange" });
+				this.loadInbox();
+			} else if (action === "open_message") {
+				const item = (this.inboxData.items || []).find(
+					(candidate) => candidate.thread.id === threadId
+				);
+				if (item && item.latest_message)
+					frappe.set_route("Form", "Field OS Communication Message", item.latest_message.id);
+			}
+		} catch (error) {
+			frappe.msgprint({ title: __("Inbox action failed"), message: error.message, indicator: "red" });
+		}
+	}
+
+	openInboxAssignment(threadId) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Assign conversation"),
+			fields: [
+				{
+					fieldname: "user",
+					fieldtype: "Link",
+					options: "User",
+					label: __("Assignee"),
+					default: this.session.user,
+					reqd: 1,
+				},
+			],
+			primary_action_label: __("Assign"),
+			primary_action: async (values) => {
+				try {
+					await frappe.call("erpnext.field_os.api.inbox.assign", {
+						company: this.company,
+						thread_id: threadId,
+						user: values.user,
+						idempotency_key: this.actionKey("assign", threadId),
+					});
+					dialog.hide();
+					frappe.show_alert({ message: __("Conversation assigned"), indicator: "green" });
+					this.loadInbox();
+				} catch (error) {
+					frappe.msgprint({
+						title: __("Assignment failed"),
+						message: error.message,
+						indicator: "red",
+					});
+				}
+			},
+		});
+		dialog.show();
+	}
+
+	openInboxReply(threadId) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Reply to customer"),
+			fields: [
+				{ fieldname: "subject", fieldtype: "Data", label: __("Subject (email only)") },
+				{ fieldname: "body", fieldtype: "Small Text", label: __("Message"), reqd: 1 },
+			],
+			primary_action_label: __("Review and send"),
+			primary_action: (values) => {
+				frappe.confirm(
+					`${__(
+						"Send this customer message?"
+					)}<br><br><div class="well well-sm">${frappe.utils.escape_html(values.body)}</div>`,
+					async () => {
+						try {
+							const prepared = (
+								await frappe.call("erpnext.field_os.api.inbox.prepare_reply", {
+									company: this.company,
+									thread_id: threadId,
+									body: values.body,
+									subject: values.subject,
+								})
+							).message;
+							const method =
+								prepared.channel === "email"
+									? "erpnext.field_os.api.email.approve_send"
+									: "erpnext.field_os.api.sms.approve_send";
+							await frappe.call(method, {
+								company: this.company,
+								proposal_id: prepared.proposal.id,
+								integration_id: prepared.integration_id,
+								idempotency_key: `reply:${prepared.message_id}`,
+							});
+							dialog.hide();
+							frappe.show_alert({ message: __("Message sent"), indicator: "green" });
+							this.loadInboxThread(threadId);
+						} catch (error) {
+							frappe.msgprint({
+								title: __("Message not sent"),
+								message: error.message,
+								indicator: "red",
+							});
+						}
+					}
+				);
+			},
+		});
+		dialog.show();
+	}
+
+	openCustomerCorrection(threadId) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Link customer"),
+			fields: [
+				{
+					fieldname: "customer",
+					fieldtype: "Link",
+					options: "Customer",
+					label: __("Customer"),
+					reqd: 1,
+				},
+				{ fieldname: "reason", fieldtype: "Small Text", label: __("Why was the suggestion wrong?") },
+			],
+			primary_action_label: __("Link and teach Field OS"),
+			primary_action: async (values) => {
+				try {
+					await frappe.call("erpnext.field_os.api.inbox.correct", {
+						company: this.company,
+						thread_id: threadId,
+						field: "customer_id",
+						value: values.customer,
+						reason: values.reason,
+					});
+					dialog.hide();
+					this.loadInboxThread(threadId);
+				} catch (error) {
+					frappe.msgprint({
+						title: __("Customer not linked"),
+						message: error.message,
+						indicator: "red",
+					});
+				}
+			},
+		});
+		dialog.show();
+	}
+
+	async correctInbox(threadId, field, value) {
+		try {
+			await frappe.call("erpnext.field_os.api.inbox.correct", {
+				company: this.company,
+				thread_id: threadId,
+				field,
+				value,
+				reason: "operator correction",
+			});
+			frappe.show_alert({ message: __("Correction saved for evaluation"), indicator: "green" });
+			this.loadInboxThread(threadId);
+		} catch (error) {
+			frappe.msgprint({ title: __("Correction not saved"), message: error.message, indicator: "red" });
+			this.loadInboxThread(threadId);
+		}
+	}
+
+	async setInboxState(threadId, state) {
+		try {
+			await frappe.call("erpnext.field_os.api.inbox.set_state", {
+				company: this.company,
+				thread_id: threadId,
+				state,
+				idempotency_key: this.actionKey(`state:${state}`, threadId),
+			});
+			this.loadInbox();
+		} catch (error) {
+			frappe.msgprint({ title: __("State not changed"), message: error.message, indicator: "red" });
+		}
+	}
+
+	actionKey(action, threadId) {
+		return `${action}:${this.company}:${threadId}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
 	}
 
 	async search(query) {

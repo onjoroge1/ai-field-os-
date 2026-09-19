@@ -53,6 +53,11 @@ class TestOperationsService(TestCase):
 		self.assertEqual(snapshot.counts["unassigned"], 1)
 		self.assertEqual(self.repository.companies, ["HVAC CO"])
 
+	def test_today_applies_limit_after_priority_sort(self):
+		snapshot = self.service.today(self.context, day=date(2026, 9, 19), limit=1)
+		self.assertEqual([item.id for item in snapshot.attention], ["urgent"])
+		self.assertEqual(snapshot.counts, {"total": 1, "unassigned": 1, "critical": 1})
+
 	def test_short_search_does_not_hit_repository(self):
 		self.assertEqual(self.service.search(self.context, "x"), [])
 		self.assertEqual(self.repository.companies, [])

@@ -31,7 +31,8 @@ class FrappeOperationsRepository:
 		items.extend(self._todays_visits(company, day, limit))
 		items.extend(self._unassigned_issues(company, limit))
 		items.extend(self._overdue_invoices(company, day, limit))
-		return items[:limit]
+		items.extend(self._inbox_attention(company, limit))
+		return items
 
 	def _todays_visits(self, company: str, day: date, limit: int) -> list[AttentionItem]:
 		rows = frappe.get_all(
@@ -125,6 +126,49 @@ class FrappeOperationsRepository:
 			)
 			for row in rows
 		]
+
+	def _inbox_attention(self, company: str, limit: int) -> list[AttentionItem]:
+		now = datetime.now(UTC)
+		rows = frappe.get_all(
+			"Field OS Communication Thread",
+			filters={"company": company, "status": ["in", ["open", "pending"]]},
+			fields=[
+				"name",
+				"subject",
+				"channel",
+				"classification",
+				"assigned_to",
+				"sla_due_at",
+				"last_message_at",
+			],
+			order_by="sla_due_at asc, last_message_at desc",
+			limit=limit,
+		)
+		items = []
+		for row in rows:
+			due_at = _value(row, "sla_due_at")
+			if isinstance(due_at, str):
+				due_at = datetime.fromisoformat(due_at)
+			if due_at and not due_at.tzinfo:
+				due_at = due_at.replace(tzinfo=UTC)
+			overdue = bool(due_at and due_at <= now)
+			unassigned = not _value(row, "assigned_to")
+			if not overdue and not unassigned:
+				continue
+			items.append(
+				AttentionItem(
+					id=f"inbox:{_value(row, 'name')}",
+					kind="inbox",
+					severity=AttentionSeverity.CRITICAL if overdue else AttentionSeverity.WARNING,
+					title=_value(row, "subject") or f"{_value(row, 'channel')} message",
+					summary="SLA overdue" if overdue else "Unassigned Inbox conversation",
+					record=RecordLink("Field OS Communication Thread", _value(row, "name"), "Open in Inbox"),
+					due_at=due_at,
+					owner=_value(row, "assigned_to"),
+					metadata={"classification": _value(row, "classification")},
+				)
+			)
+		return items
 
 	def search(self, company: str, query: str, limit: int) -> list[SearchResult]:
 		like = f"%{query}%"

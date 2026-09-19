@@ -34,3 +34,36 @@ class TestActionEngine(TestCase):
 		proposal = ActionProposal("P1", "send", {}, RiskClass.EXTERNAL, "HVAC CO", "d", now, now)
 		with self.assertRaises(ActionRejected):
 			ActionEngine().execute(proposal, "key", lambda: True, approved_by="m", now=now)
+
+	def test_idempotency_is_scoped_by_tenant_actor_and_tool(self):
+		engine = ActionEngine()
+		first = self.proposal(RiskClass.LOW)
+		second = ActionProposal(
+			"P2",
+			"send_message",
+			{},
+			RiskClass.LOW,
+			"OTHER CO",
+			"d@example.test",
+			first.created_at,
+			first.expires_at,
+		)
+		self.assertEqual(engine.execute(first, "shared", lambda: "first").result, "first")
+		self.assertEqual(engine.execute(second, "shared", lambda: "second").result, "second")
+
+	def test_reusing_idempotency_key_for_different_arguments_is_rejected(self):
+		engine = ActionEngine()
+		first = self.proposal(RiskClass.LOW)
+		engine.execute(first, "same-key", lambda: "first")
+		changed = ActionProposal(
+			"P2",
+			first.tool,
+			{"thread_id": "THREAD-2"},
+			first.risk,
+			first.company,
+			first.actor,
+			first.created_at,
+			first.expires_at,
+		)
+		with self.assertRaises(ActionRejected):
+			engine.execute(changed, "same-key", lambda: "second")

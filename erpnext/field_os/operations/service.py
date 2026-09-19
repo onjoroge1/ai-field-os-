@@ -38,6 +38,7 @@ class OperationsService:
 				item.id,
 			)
 		)
+		items = items[:limit]
 		counts: dict[str, int] = {"total": len(items)}
 		for item in items:
 			counts[item.kind] = counts.get(item.kind, 0) + 1
