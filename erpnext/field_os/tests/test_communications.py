@@ -55,6 +55,22 @@ class MemoryCommunicationRepository:
 			None,
 		)
 
+	def get_message(self, company, message_id):
+		return self.messages.get((company, message_id))
+
+	def find_message_by_external_id(self, company, channel, external_id, provider=None):
+		return next(
+			(
+				message
+				for (tenant, _), message in self.messages.items()
+				if tenant == company
+				and message.channel == channel
+				and message.external_id == external_id
+				and (not provider or message.provider == provider)
+			),
+			None,
+		)
+
 	def save_message(self, message):
 		message = message if message.id else replace(message, id=f"MESSAGE-{len(self.messages) + 1}")
 		self.messages[(message.company, message.id)] = message

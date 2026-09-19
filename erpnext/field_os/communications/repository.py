@@ -25,6 +25,18 @@ class CommunicationRepository(Protocol):
 	def find_message_by_dedupe(self, company: str, dedupe_key: str) -> CommunicationMessage | None:
 		...
 
+	def get_message(self, company: str, message_id: str) -> CommunicationMessage | None:
+		...
+
+	def find_message_by_external_id(
+		self,
+		company: str,
+		channel: CommunicationChannel,
+		external_id: str,
+		provider: str | None = None,
+	) -> CommunicationMessage | None:
+		...
+
 	def save_message(self, message: CommunicationMessage) -> CommunicationMessage:
 		...
 

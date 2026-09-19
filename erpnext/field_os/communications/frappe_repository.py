@@ -101,6 +101,24 @@ class FrappeCommunicationRepository:
 		)
 		return self._message(frappe.get_doc("Field OS Communication Message", name)) if name else None
 
+	def get_message(self, company, message_id):
+		if not message_id or not frappe.db.exists(
+			"Field OS Communication Message", {"name": message_id, "company": company}
+		):
+			return None
+		return self._message(frappe.get_doc("Field OS Communication Message", message_id))
+
+	def find_message_by_external_id(self, company, channel, external_id, provider=None):
+		filters = {"company": company, "channel": channel.value, "external_id": external_id}
+		if provider:
+			filters["provider"] = provider
+		name = frappe.db.get_value(
+			"Field OS Communication Message",
+			filters,
+			"name",
+		)
+		return self.get_message(company, name) if name else None
+
 	def save_message(self, message):
 		if not message.thread_id:
 			raise ValueError("Message thread is required")

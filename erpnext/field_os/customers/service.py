@@ -25,6 +25,11 @@ class CustomerAccessPolicy(Protocol):
 		...
 
 
+class CustomerCommunicationTimeline(Protocol):
+	def list_events(self, company: str, customer_id: str, limit: int) -> list[TimelineEvent]:
+		...
+
+
 @dataclass(frozen=True, slots=True)
 class TimelineEvent:
 	id: str
@@ -49,9 +54,15 @@ class Customer360:
 
 
 class Customer360Service:
-	def __init__(self, adapter: FieldOperationsAdapter, access: CustomerAccessPolicy) -> None:
+	def __init__(
+		self,
+		adapter: FieldOperationsAdapter,
+		access: CustomerAccessPolicy,
+		communications: CustomerCommunicationTimeline | None = None,
+	) -> None:
 		self.adapter = adapter
 		self.access = access
+		self.communications = communications
 
 	def get(self, context: TenantContext, customer_id: str) -> Customer360:
 		authorize(context, "read")
@@ -69,7 +80,10 @@ class Customer360Service:
 			item for item in quotes if item.status.lower() not in {"ordered", "lost", "expired"}
 		)
 		open_invoices = tuple(item for item in invoices if item.outstanding_amount > 0)
-		timeline = self._timeline(visits, quotes, invoices)
+		timeline = list(self._timeline(visits, quotes, invoices))
+		if self.communications:
+			timeline.extend(self.communications.list_events(context.company, customer_id, 100))
+		timeline.sort(key=lambda item: item.occurred_on.isoformat() if item.occurred_on else "", reverse=True)
 		return Customer360(
 			customer,
 			sites,
@@ -77,7 +91,7 @@ class Customer360Service:
 			open_work,
 			open_quotes,
 			open_invoices,
-			timeline,
+			tuple(timeline),
 			sum((item.outstanding_amount for item in open_invoices), Decimal(0)),
 		)
 
