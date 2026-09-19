@@ -51,6 +51,7 @@ class FieldOSApp {
 			if (this.activeView === "today") this.loadToday();
 			else if (this.activeView === "ask") this.renderAsk();
 			else if (this.activeView === "customers") this.renderCustomers();
+			else if (this.activeView === "dispatch") this.renderDispatch();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
@@ -74,6 +75,12 @@ class FieldOSApp {
 		});
 		this.root.on("click", "[data-customer]", (event) =>
 			this.loadCustomer(event.currentTarget.dataset.customer)
+		);
+		this.root.on("change", '[data-role="dispatch-day"]', (event) =>
+			this.loadDispatch(event.target.value)
+		);
+		this.root.on("click", "[data-move-job]", (event) =>
+			this.openDispatchChange(event.currentTarget.dataset.moveJob)
 		);
 	}
 
@@ -424,6 +431,149 @@ class FieldOSApp {
 					"Unified timeline"
 				)}</h2><span>${data.timeline.length}</span></div>${timeline}</section>
 			</div>`);
+	}
+
+	renderDispatch() {
+		this.setHeading(__("Dispatch"));
+		const today = frappe.datetime.get_today();
+		this.content().html(
+			`<div class="field-os__dispatch-toolbar"><div><p class="field-os__eyebrow">LIVE OPERATIONS</p><h2>${__(
+				"Jobs and technicians"
+			)}</h2></div><label>${__(
+				"Day"
+			)} <input type="date" data-role="dispatch-day" value="${today}"></label></div><div data-role="dispatch-board" class="field-os__loading">${__(
+				"Loading dispatch…"
+			)}</div>`
+		);
+		this.loadDispatch(today);
+	}
+
+	async loadDispatch(day) {
+		const board = this.root.find('[data-role="dispatch-board"]');
+		try {
+			const response = await frappe.call("erpnext.field_os.api.dispatch.board", {
+				company: this.company,
+				day,
+			});
+			this.dispatchData = response.message;
+			this.renderDispatchBoard(response.message);
+		} catch (error) {
+			board
+				.attr("class", "field-os__error")
+				.html(
+					`<strong>${__("Dispatch unavailable")}</strong><span>${frappe.utils.escape_html(
+						error.message
+					)}</span>`
+				);
+		}
+	}
+
+	renderDispatchBoard(data) {
+		const conflictJobs = new Set((data.conflicts || []).flatMap((item) => item.job_ids));
+		const columns = [{ id: "", name: __("Unassigned"), status: "attention" }, ...data.technicians];
+		const html = columns
+			.map((technician) => {
+				const jobs = data.jobs.filter((job) => (job.technician_id || "") === technician.id);
+				return `<section class="field-os__dispatch-column"><header><div><span class="field-os__tech-status status-${
+					technician.status
+				}"></span><strong>${frappe.utils.escape_html(technician.name)}</strong></div><small>${
+					technician.status === "busy" ? __("On job") : jobs.length + " " + __("jobs")
+				}</small></header><div>${
+					jobs.length
+						? jobs.map((job) => this.dispatchCard(job, conflictJobs.has(job.id))).join("")
+						: `<p class="field-os__column-empty">${__("No jobs")}</p>`
+				}</div></section>`;
+			})
+			.join("");
+		this.root.find('[data-role="dispatch-board"]').attr("class", "field-os__dispatch-board").html(html);
+	}
+
+	dispatchCard(job, conflict) {
+		const start = moment(job.start).format("h:mm A");
+		const end = moment(job.end).format("h:mm A");
+		const canMove = (this.session.capabilities || []).includes("dispatch");
+		return `<article class="field-os__job-card ${
+			conflict ? "has-conflict" : ""
+		}"><div><time>${start}–${end}</time>${
+			conflict ? `<span>${__("Conflict")}</span>` : ""
+		}</div><strong>${frappe.utils.escape_html(job.customer_name)}</strong><p>${frappe.utils.escape_html(
+			job.summary
+		)}</p><footer><small>${frappe.utils.escape_html(job.status)}</small>${
+			canMove
+				? `<button data-move-job="${frappe.utils.escape_html(job.id)}">${__("Move")} ↗</button>`
+				: `<button data-doctype="Maintenance Visit" data-name="${frappe.utils.escape_html(
+						job.id
+				  )}">${__("Open")} ↗</button>`
+		}</footer></article>`;
+	}
+
+	openDispatchChange(jobId) {
+		const job = this.dispatchData.jobs.find((item) => item.id === jobId);
+		const dialog = new frappe.ui.Dialog({
+			title: __("Reschedule or reassign {0}", [jobId]),
+			fields: [
+				{
+					fieldname: "technician_id",
+					label: __("Technician"),
+					fieldtype: "Select",
+					options: this.dispatchData.technicians.map((item) => ({
+						label: item.name,
+						value: item.id,
+					})),
+					default: job.technician_id,
+					reqd: 1,
+				},
+				{
+					fieldname: "start",
+					label: __("Start"),
+					fieldtype: "Datetime",
+					default: job.start,
+					reqd: 1,
+				},
+				{ fieldname: "end", label: __("End"), fieldtype: "Datetime", default: job.end, reqd: 1 },
+			],
+			primary_action_label: __("Check and move"),
+			primary_action: async (values) => {
+				dialog.get_primary_btn().prop("disabled", true);
+				try {
+					const previewResponse = await frappe.call(
+						"erpnext.field_os.api.dispatch.preview_change",
+						{
+							company: this.company,
+							job_id: job.id,
+							technician_id: values.technician_id,
+							start: moment(values.start).toISOString(),
+							end: moment(values.end).toISOString(),
+							expected_version: job.version,
+						}
+					);
+					const preview = previewResponse.message;
+					if (!preview.can_commit) {
+						frappe.msgprint({
+							title: __("Schedule conflict"),
+							message: __(
+								"This technician already has an overlapping job. Choose another time or technician."
+							),
+							indicator: "orange",
+						});
+						return;
+					}
+					const result = await frappe.call("erpnext.field_os.api.dispatch.commit_change", {
+						company: this.company,
+						proposal_id: preview.proposal.id,
+						idempotency_key: `dispatch:${preview.proposal.id}:${this.session.user}`,
+					});
+					dialog.hide();
+					frappe.show_alert({ message: __("Dispatch updated"), indicator: "green" });
+					this.loadDispatch(this.root.find('[data-role="dispatch-day"]').val());
+				} catch (error) {
+					frappe.msgprint({ title: __("Move failed"), message: error.message, indicator: "red" });
+				} finally {
+					dialog.get_primary_btn().prop("disabled", false);
+				}
+			},
+		});
+		dialog.show();
 	}
 
 	async search(query) {
