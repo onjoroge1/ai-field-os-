@@ -493,6 +493,7 @@ scheduler_events = {
 			"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
 			"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.run_parallel_reposting",
 			"erpnext.field_os.api.email.poll_enabled_mailboxes",
+			"erpnext.field_os.api.sms.poll_enabled_gateways",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [
