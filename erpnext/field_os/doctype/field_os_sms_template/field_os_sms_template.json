@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "autoname": "format:SMS-TPL-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["company", "template_name", "enabled", "transactional", "body", "variables"],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "template_name", "fieldtype": "Data", "in_list_view": 1, "label": "Template Name", "reqd": 1},
+  {"default": "1", "fieldname": "enabled", "fieldtype": "Check", "in_list_view": 1, "label": "Enabled"},
+  {"default": "1", "description": "Transactional messages may be sent without marketing opt-in but never after STOP.", "fieldname": "transactional", "fieldtype": "Check", "label": "Transactional"},
+  {"fieldname": "body", "fieldtype": "Small Text", "label": "Body", "reqd": 1},
+  {"description": "Comma-separated variable names used in Body.", "fieldname": "variables", "fieldtype": "Data", "label": "Variables"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-19 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS SMS Template",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "export": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Owner", "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Manager", "write": 1},
+  {"read": 1, "role": "Field OS Dispatcher"}
+ ],
+ "search_fields": "template_name,body",
+ "sort_field": "template_name",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "template_name"
+}

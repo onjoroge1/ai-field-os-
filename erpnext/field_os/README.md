@@ -36,3 +36,11 @@ delivery webhooks use an HMAC-SHA256 signature and resolve the tenant from the
 opaque mailbox key; callers cannot choose a company. Provider adapters may also
 poll every 15 minutes. Outbound email always follows draft -> preview -> explicit
 approval -> send, with delivery failures retained on the message for retry.
+
+## SMS
+
+Create a **Field OS SMS Integration** for each tenant number. SMS uses the same
+signed webhook, deduplication, approval, polling, and delivery-state model as
+email. STOP-family keywords immediately block every outbound SMS; START-family
+keywords restore opt-in. Marketing requires explicit opt-in, while transactional
+templates may send to an unknown preference but never after an opt-out.
