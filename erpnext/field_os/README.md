@@ -28,3 +28,11 @@ factory import path that implements `ModelProvider`; `disabled` fails closed.
 Conversation retention can be disabled, limited to the session, or set to 30
 days. Tool citations are created from server results, never accepted from model
 text.
+
+## Email
+
+Create a **Field OS Email Integration** for each tenant mailbox. Inbound and
+delivery webhooks use an HMAC-SHA256 signature and resolve the tenant from the
+opaque mailbox key; callers cannot choose a company. Provider adapters may also
+poll every 15 minutes. Outbound email always follows draft -> preview -> explicit
+approval -> send, with delivery failures retained on the message for retry.

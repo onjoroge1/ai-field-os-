@@ -12,3 +12,10 @@ class FieldOSCommunicationMessage(Document):
 		self.dedupe_key_hash = (
 			sha256(f"{self.company}\0{self.dedupe_key}".encode()).hexdigest() if self.dedupe_key else None
 		)
+		self.external_id_hash = (
+			sha256(
+				f"{self.company}\0{self.channel}\0{self.provider or ''}\0{self.external_id}".encode()
+			).hexdigest()
+			if self.external_id
+			else None
+		)

@@ -3,7 +3,7 @@
  "autoname": "format:COM-MSG-{#####}",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["company", "thread", "channel", "direction", "delivery_status", "occurred_at", "sender_section", "sender_address", "sender_name", "sender_role", "recipients_json", "content_section", "subject", "body", "classification", "provider_section", "provider", "external_id", "dedupe_key", "dedupe_key_hash", "provider_metadata_json", "error", "attachments_section", "attachments"],
+ "field_order": ["company", "thread", "channel", "direction", "delivery_status", "occurred_at", "sender_section", "sender_address", "sender_name", "sender_role", "recipients_json", "content_section", "subject", "body", "classification", "provider_section", "provider", "external_id", "external_id_hash", "dedupe_key", "dedupe_key_hash", "provider_metadata_json", "error", "attachments_section", "attachments"],
  "fields": [
   {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Company", "options": "Company", "reqd": 1},
   {"fieldname": "thread", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Thread", "options": "Field OS Communication Thread", "reqd": 1},
@@ -23,6 +23,7 @@
   {"fieldname": "provider_section", "fieldtype": "Section Break", "label": "Provider State"},
   {"fieldname": "provider", "fieldtype": "Data", "label": "Provider"},
   {"fieldname": "external_id", "fieldtype": "Data", "label": "External ID", "no_copy": 1},
+  {"fieldname": "external_id_hash", "fieldtype": "Data", "hidden": 1, "label": "External ID Hash", "no_copy": 1, "unique": 1},
   {"fieldname": "dedupe_key", "fieldtype": "Data", "label": "Dedupe Key", "no_copy": 1},
   {"fieldname": "dedupe_key_hash", "fieldtype": "Data", "hidden": 1, "label": "Dedupe Key Hash", "no_copy": 1, "unique": 1},
   {"fieldname": "provider_metadata_json", "fieldtype": "Code", "label": "Provider Metadata JSON", "options": "JSON"},
