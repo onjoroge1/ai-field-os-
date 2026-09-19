@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Callable
 from uuid import uuid4
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.actions.models import ActionProposal, ExecutionReceipt, RiskClass
-from erpnext.field_os.domain.scheduling import BusyWindow, ScheduleProposal, ScheduleRequest, Technician, propose_technicians
+from erpnext.field_os.domain.scheduling import (
+	BusyWindow,
+	ScheduleProposal,
+	ScheduleRequest,
+	Technician,
+	propose_technicians,
+)
 from erpnext.field_os.domain.service_request import RequestStatus, ServiceRequest
 from erpnext.field_os.security.authorization import authorize
 from erpnext.field_os.security.context import TenantContext
@@ -36,7 +42,9 @@ class RequestToBookingWorkflow:
 		if request.company != context.company:
 			raise PermissionError("Service request belongs to another tenant")
 
-		triaged = request if request.status == RequestStatus.TRIAGED else request.transition(RequestStatus.TRIAGED)
+		triaged = (
+			request if request.status == RequestStatus.TRIAGED else request.transition(RequestStatus.TRIAGED)
+		)
 		options = propose_technicians(schedule_request, technicians, busy_windows)
 		if not options:
 			raise ValueError("No eligible technician is available")

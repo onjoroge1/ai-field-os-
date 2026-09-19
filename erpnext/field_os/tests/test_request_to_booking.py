@@ -11,7 +11,9 @@ from erpnext.field_os.workflows.request_to_booking import RequestToBookingWorkfl
 
 class TestRequestToBooking(TestCase):
 	def setUp(self):
-		self.context = TenantContext("HVAC CO", "dispatcher@example.test", frozenset({FieldOSRole.DISPATCHER}))
+		self.context = TenantContext(
+			"HVAC CO", "dispatcher@example.test", frozenset({FieldOSRole.DISPATCHER})
+		)
 		self.request = ServiceRequest("R1", "HVAC CO", "C1", "SITE1", "RTU not cooling")
 		start = datetime.now(UTC) + timedelta(days=1)
 		self.schedule = ScheduleRequest(start, start + timedelta(hours=2), frozenset({"commercial-hvac"}))
