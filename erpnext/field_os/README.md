@@ -22,3 +22,9 @@ Production fails validation if action approvals are disabled.
 After migrating the site, open `/app/field-os`. The role-aware shell resolves
 an explicit company tenant and starts on an exception-first Today queue. All
 search and dashboard reads are company-scoped on the server.
+
+Ask Operations is vendor-neutral. Set `FIELD_OS_MODEL_PROVIDER` to a Python
+factory import path that implements `ModelProvider`; `disabled` fails closed.
+Conversation retention can be disabled, limited to the session, or set to 30
+days. Tool citations are created from server results, never accepted from model
+text.
