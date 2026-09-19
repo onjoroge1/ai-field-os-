@@ -16,3 +16,9 @@ This namespace contains the AI-native field-service product layer.
 - `FIELD_OS_REQUIRE_ACTION_APPROVAL=true`
 
 Production fails validation if action approvals are disabled.
+
+## Operator workspace
+
+After migrating the site, open `/app/field-os`. The role-aware shell resolves
+an explicit company tenant and starts on an exception-first Today queue. All
+search and dashboard reads are company-scoped on the server.

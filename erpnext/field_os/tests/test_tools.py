@@ -12,7 +12,13 @@ class TestToolRegistry(TestCase):
 		self.context = TenantContext("HVAC CO", "d@example.test", frozenset({FieldOSRole.DISPATCHER}))
 		self.registry = ToolRegistry()
 		self.registry.register(
-			ToolDefinition("lookup", "lookup", "read", frozenset({"id"}), lambda context, args: (context.company, args["id"]))
+			ToolDefinition(
+				"lookup",
+				"lookup",
+				"read",
+				frozenset({"id"}),
+				lambda context, args: (context.company, args["id"]),
+			)
 		)
 
 	def test_validates_schema_before_handler(self):

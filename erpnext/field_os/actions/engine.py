@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Callable
+from typing import Any
 
 from erpnext.field_os.actions.models import ActionProposal, ExecutionReceipt
 from erpnext.field_os.actions.policy import requires_confirmation
