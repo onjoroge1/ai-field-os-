@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "autoname": "format:COM-PREF-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["company", "contact_address", "channel", "consent_status", "source", "updated_at", "proof", "preference_key"],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "contact_address", "fieldtype": "Data", "in_list_view": 1, "label": "Contact Address", "reqd": 1},
+  {"fieldname": "channel", "fieldtype": "Select", "in_list_view": 1, "label": "Channel", "options": "email\nsms\nweb\ntechnician_note\ncall", "reqd": 1},
+  {"fieldname": "consent_status", "fieldtype": "Select", "in_list_view": 1, "label": "Consent Status", "options": "unknown\nopted_in\nopted_out\ntransactional_only", "reqd": 1},
+  {"fieldname": "source", "fieldtype": "Data", "label": "Source", "reqd": 1},
+  {"fieldname": "updated_at", "fieldtype": "Datetime", "label": "Updated At", "reqd": 1},
+  {"fieldname": "proof", "fieldtype": "Small Text", "label": "Proof"},
+  {"fieldname": "preference_key", "fieldtype": "Data", "hidden": 1, "label": "Preference Key", "no_copy": 1, "unique": 1}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-19 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Contact Preference",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "export": 1, "read": 1, "report": 1, "role": "System Manager", "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Owner", "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Manager", "write": 1},
+  {"create": 1, "read": 1, "role": "Field OS Dispatcher", "write": 1}
+ ],
+ "sort_field": "updated_at",
+ "sort_order": "DESC",
+ "states": []
+}
