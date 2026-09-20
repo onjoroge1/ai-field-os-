@@ -20,12 +20,12 @@ def main():
 	root = Path(__file__).resolve().parents[3]
 	sys.path.insert(0, str(root))
 	if importlib.util.find_spec("frappe") is None:
-		frappe = types.ModuleType("frappe")
-		frappe.PermissionError = PermissionError
-		frappe.get_all = unavailable
-		frappe.get_roles = unavailable
-		frappe.db = types.SimpleNamespace(exists=unavailable)
-		sys.modules["frappe"] = frappe
+		framework_stub = types.ModuleType("frappe")
+		framework_stub.PermissionError = PermissionError
+		framework_stub.get_all = unavailable
+		framework_stub.get_roles = unavailable
+		framework_stub.db = types.SimpleNamespace(exists=unavailable)
+		sys.modules["frappe"] = framework_stub
 		print("Running isolated unit tests with Frappe import stubs.", flush=True)
 	suite = unittest.defaultTestLoader.discover(str(root / "erpnext/field_os/tests"), top_level_dir=str(root))
 	result = unittest.TextTestRunner(verbosity=1).run(suite)
