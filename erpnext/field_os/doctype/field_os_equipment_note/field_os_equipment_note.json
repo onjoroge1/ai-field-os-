@@ -1,0 +1,105 @@
+{
+  "actions": [],
+  "autoname": "format:EQ-NOTE-{#####}",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "equipment",
+    "visit",
+    "technician",
+    "occurred_at",
+    "note",
+    "photos_json"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "equipment",
+      "fieldtype": "Link",
+      "label": "Equipment",
+      "options": "Field OS HVAC Equipment",
+      "reqd": 1
+    },
+    {
+      "fieldname": "visit",
+      "fieldtype": "Link",
+      "label": "Visit",
+      "options": "Maintenance Visit"
+    },
+    {
+      "fieldname": "technician",
+      "fieldtype": "Link",
+      "label": "Technician",
+      "options": "User",
+      "reqd": 1,
+      "read_only": 1
+    },
+    {
+      "fieldname": "occurred_at",
+      "fieldtype": "Datetime",
+      "label": "Occurred At",
+      "reqd": 1,
+      "read_only": 1
+    },
+    {
+      "fieldname": "note",
+      "fieldtype": "Text Editor",
+      "label": "Note",
+      "reqd": 1
+    },
+    {
+      "default": "[]",
+      "fieldname": "photos_json",
+      "fieldtype": "Code",
+      "label": "Photos",
+      "options": "JSON"
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "links": [],
+  "modified": "2026-09-20 00:00:00",
+  "modified_by": "Administrator",
+  "module": "Field OS",
+  "name": "Field OS Equipment Note",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "read": 1,
+      "role": "System Manager",
+      "write": 1
+    },
+    {
+      "create": 1,
+      "read": 1,
+      "role": "Field OS Technician"
+    },
+    {
+      "read": 1,
+      "role": "Field OS Manager"
+    },
+    {
+      "role": "Field OS Owner",
+      "read": 1
+    },
+    {
+      "role": "Field OS Dispatcher",
+      "read": 1
+    },
+    {
+      "role": "Field OS Billing",
+      "read": 1
+    }
+  ],
+  "sort_field": "occurred_at",
+  "sort_order": "DESC",
+  "states": []
+}

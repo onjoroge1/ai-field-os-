@@ -1,0 +1,140 @@
+{
+  "actions": [],
+  "autoname": "format:HVAC-{#####}",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "customer",
+    "site",
+    "equipment_name",
+    "unit_type",
+    "manufacturer",
+    "model_number",
+    "serial_number",
+    "installed_on",
+    "warranty_expires_on",
+    "parent_equipment",
+    "status"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "customer",
+      "fieldtype": "Link",
+      "label": "Customer",
+      "options": "Customer",
+      "reqd": 1
+    },
+    {
+      "fieldname": "site",
+      "fieldtype": "Link",
+      "label": "Site",
+      "options": "Address",
+      "reqd": 1
+    },
+    {
+      "fieldname": "equipment_name",
+      "fieldtype": "Data",
+      "label": "Equipment Name",
+      "reqd": 1
+    },
+    {
+      "fieldname": "unit_type",
+      "fieldtype": "Data",
+      "label": "Unit Type",
+      "reqd": 1
+    },
+    {
+      "fieldname": "manufacturer",
+      "fieldtype": "Data",
+      "label": "Manufacturer"
+    },
+    {
+      "fieldname": "model_number",
+      "fieldtype": "Data",
+      "label": "Model Number"
+    },
+    {
+      "fieldname": "serial_number",
+      "fieldtype": "Data",
+      "label": "Serial Number"
+    },
+    {
+      "fieldname": "installed_on",
+      "fieldtype": "Date",
+      "label": "Installed On"
+    },
+    {
+      "fieldname": "warranty_expires_on",
+      "fieldtype": "Date",
+      "label": "Warranty Expires On"
+    },
+    {
+      "fieldname": "parent_equipment",
+      "fieldtype": "Link",
+      "label": "Parent Equipment",
+      "options": "Field OS HVAC Equipment"
+    },
+    {
+      "default": "Active",
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Active\nInactive\nReplaced\nRetired",
+      "reqd": 1
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "links": [],
+  "modified": "2026-09-20 00:00:00",
+  "modified_by": "Administrator",
+  "module": "Field OS",
+  "name": "Field OS HVAC Equipment",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "write": 1
+    },
+    {
+      "create": 1,
+      "read": 1,
+      "role": "Field OS Owner",
+      "write": 1
+    },
+    {
+      "create": 1,
+      "read": 1,
+      "role": "Field OS Manager",
+      "write": 1
+    },
+    {
+      "read": 1,
+      "role": "Field OS Technician"
+    },
+    {
+      "role": "Field OS Dispatcher",
+      "read": 1,
+      "create": 1,
+      "write": 1
+    },
+    {
+      "role": "Field OS Billing",
+      "read": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

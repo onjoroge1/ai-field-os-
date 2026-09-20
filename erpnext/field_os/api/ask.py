@@ -8,20 +8,20 @@ import frappe
 from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
-from erpnext.field_os.adapter.erpnext import ERPNextAdapter
 from erpnext.field_os.ai.conversation import AskOperationsService, ConversationRetention
 from erpnext.field_os.ai.frappe_provider import configured_provider
 from erpnext.field_os.ai.frappe_store import FrappeCacheConversationStore, FrappeCacheProposalStore
 from erpnext.field_os.ai.operator_catalog import build_operator_registry
+from erpnext.field_os.equipment.frappe_repository import CompanyCustomerAdapter, FrappeEquipmentRepository
 from erpnext.field_os.security.context import resolve_tenant_context
 
 _ACTION_ENGINE = ActionEngine()
 
 
-def _service() -> AskOperationsService:
+def _service(company: str) -> AskOperationsService:
 	return AskOperationsService(
 		configured_provider(),
-		build_operator_registry(ERPNextAdapter()),
+		build_operator_registry(CompanyCustomerAdapter(company), FrappeEquipmentRepository()),
 		FrappeCacheConversationStore(),
 		FrappeCacheProposalStore(),
 	)
@@ -39,7 +39,7 @@ def ask(
 		retention_policy = ConversationRetention(retention)
 	except ValueError:
 		frappe.throw(_("Invalid conversation retention policy"), frappe.ValidationError)
-	response = _service().ask(
+	response = _service(context.company).ask(
 		context,
 		message,
 		conversation_id=conversation_id,
@@ -51,19 +51,19 @@ def ask(
 @frappe.whitelist(methods=["POST"])
 def clear_conversation(company: str, conversation_id: str) -> dict[str, bool]:
 	context = resolve_tenant_context(company)
-	_service().clear(context, conversation_id)
+	_service(context.company).clear(context, conversation_id)
 	return {"cleared": True}
 
 
 @frappe.whitelist(methods=["POST"])
 def approve(company: str, proposal_id: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
-	receipt = _service().approve(context, proposal_id, idempotency_key, _ACTION_ENGINE)
+	receipt = _service(context.company).approve(context, proposal_id, idempotency_key, _ACTION_ENGINE)
 	return asdict(receipt)
 
 
 @frappe.whitelist(methods=["POST"])
 def reject(company: str, proposal_id: str) -> dict[str, bool]:
 	context = resolve_tenant_context(company)
-	_service().reject(context, proposal_id)
+	_service(context.company).reject(context, proposal_id)
 	return {"rejected": True}

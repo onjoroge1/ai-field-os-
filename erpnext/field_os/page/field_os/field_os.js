@@ -80,6 +80,14 @@ class FieldOSApp {
 		this.root.on("click", "[data-customer]", (event) =>
 			this.loadCustomer(event.currentTarget.dataset.customer)
 		);
+		this.root.on("click", "[data-equipment]", (event) =>
+			this.loadEquipment(event.currentTarget.dataset.equipment)
+		);
+		this.root.on("click", '[data-action="new-equipment"]', () => this.editEquipment());
+		this.root.on("click", '[data-action="edit-equipment"]', () =>
+			this.editEquipment(this.equipmentHistory)
+		);
+		this.root.on("click", '[data-action="equipment-note"]', () => this.addEquipmentNote());
 		this.root.on("change", '[data-role="dispatch-day"]', (event) =>
 			this.loadDispatch(event.target.value)
 		);
@@ -384,6 +392,7 @@ class FieldOSApp {
 	}
 
 	renderCustomer360(data) {
+		this.currentCustomer = data;
 		const customer = data.customer;
 		const recordList = (items, doctype, empty) =>
 			items.length
@@ -445,17 +454,306 @@ class FieldOSApp {
 			"Address",
 			__("No sites")
 		)}</div></section>
-				<section><div class="field-os__section-title"><h2>${__("Equipment")}</h2><span>${
-			data.equipment.length
-		}</span></div><div class="field-os__record-list">${recordList(
-			data.equipment,
-			"Serial No",
-			__("No equipment")
+				<section><div class="field-os__section-title"><h2>${__("Equipment")}</h2>${
+			this.session.capabilities.includes("dispatch")
+				? `<button class="btn btn-default btn-xs" data-action="new-equipment">${__(
+						"Add equipment"
+				  )}</button>`
+				: ""
+		}</div><div class="field-os__record-list">${this.equipmentCards(
+			data.hvac_equipment || []
 		)}</div></section>
 				<section class="field-os__timeline"><div class="field-os__section-title"><h2>${__(
 					"Unified timeline"
 				)}</h2><span>${data.timeline.length}</span></div>${timeline}</section>
 			</div>`);
+	}
+
+	equipmentCards(items) {
+		const e = frappe.utils.escape_html;
+		return items.length
+			? items
+					.map(
+						(item) =>
+							`<button data-equipment="${e(item.id)}"><strong>${e(
+								item.name
+							)}</strong><small>${e(item.site_id)} · ${e(item.unit_type)} · ${e(
+								item.status
+							)}</small><span>→</span></button>`
+					)
+					.join("")
+			: `<p class="text-muted">${__("No equipment at this customer yet.")}</p>`;
+	}
+
+	async loadEquipment(id) {
+		this.setLoading();
+		try {
+			const response = await frappe.call("erpnext.field_os.api.equipment.history", {
+				company: this.company,
+				equipment_id: id,
+			});
+			this.equipmentHistory = response.message;
+			this.renderEquipment(response.message);
+		} catch (error) {
+			this.renderError(error.message || __("Equipment history could not load."));
+		}
+	}
+
+	renderEquipment(history) {
+		const e = frappe.utils.escape_html;
+		const item = history.equipment;
+		this.setHeading(__("Equipment history"));
+		const fields = [
+			[__("Site"), item.site_id],
+			[__("Unit type"), item.unit_type],
+			[__("Manufacturer"), item.manufacturer],
+			[__("Model"), item.model_number],
+			[__("Serial number"), item.serial_number],
+			[__("Installed"), item.installed_on],
+			[__("Warranty expires"), item.warranty_expires_on],
+			[__("Status"), item.status],
+		];
+		const photo = (url) =>
+			typeof url === "string" && url.startsWith("/private/files/")
+				? `<a href="${e(url)}" target="_blank" rel="noopener"><img src="${e(url)}" alt="${__(
+						"Equipment service photo"
+				  )}" loading="lazy"></a>`
+				: "";
+		this.content().html(`
+			<div class="field-os__section-title"><div><button class="btn btn-default btn-xs" data-customer="${e(
+				item.customer_id
+			)}">← ${__("Customer")}</button><h2>${e(item.name)}</h2></div>
+			${
+				this.session.capabilities.includes("dispatch")
+					? `<button class="btn btn-default" data-action="edit-equipment">${__(
+							"Edit equipment"
+					  )}</button>`
+					: ""
+			}</div>
+			<dl class="field-os__equipment-details">${fields
+				.map(([label, value]) => `<div><dt>${label}</dt><dd>${e(value || "—")}</dd></div>`)
+				.join("")}</dl>
+			<div class="field-os__customer-grid"><section><h3>${__(
+				"Parent equipment"
+			)}</h3><div class="field-os__record-list">${this.equipmentCards(
+			history.ancestors
+		)}</div></section>
+			<section><h3>${__("Components")}</h3><div class="field-os__record-list">${this.equipmentCards(
+			history.children
+		)}</div></section></div>
+			<div class="field-os__section-title"><h2>${__("Service notes")}</h2>${
+			this.session.capabilities.includes("field_update")
+				? `<button class="btn btn-primary" data-action="equipment-note">${__(
+						"Add service note"
+				  )}</button>`
+				: ""
+		}</div>
+			<div class="field-os__equipment-notes">${
+				history.notes.length
+					? history.notes
+							.map(
+								(note) =>
+									`<article><div><strong>${e(note.technician)}</strong><time>${e(
+										note.occurred_at
+									)}</time></div><p>${e(window.strip_html(note.note))}</p>${
+										note.visit_id
+											? `<button class="btn btn-link" data-doctype="Maintenance Visit" data-name="${e(
+													note.visit_id
+											  )}">${e(note.visit_id)}</button>`
+											: ""
+									}<div class="field-os__equipment-photos">${note.photo_urls
+										.map(photo)
+										.join("")}</div></article>`
+							)
+							.join("")
+					: `<p class="text-muted">${__(
+							"No service notes yet. Record the first inspection or repair."
+					  )}</p>`
+			}</div>`);
+	}
+
+	async editEquipment(history = null) {
+		const item = history?.equipment;
+		if (!this.currentCustomer || (item && this.currentCustomer.customer.id !== item.customer_id)) {
+			const response = await frappe.call("erpnext.field_os.api.customers.customer_360", {
+				company: this.company,
+				customer_id: item.customer_id,
+			});
+			this.currentCustomer = response.message;
+		}
+		const customer = this.currentCustomer;
+		const fields = [
+			{
+				fieldname: "site",
+				fieldtype: "Select",
+				label: __("Site"),
+				options: customer.sites.map((site) => ({ value: site.id, label: site.title })),
+				reqd: 1,
+				read_only: !!item,
+				default: item?.site_id,
+			},
+			{
+				fieldname: "equipment_name",
+				fieldtype: "Data",
+				label: __("Equipment name"),
+				reqd: 1,
+				default: item?.name,
+			},
+			{
+				fieldname: "unit_type",
+				fieldtype: "Data",
+				label: __("Unit type"),
+				reqd: 1,
+				default: item?.unit_type,
+			},
+			...["manufacturer", "model_number", "serial_number"].map((fieldname) => ({
+				fieldname,
+				fieldtype: "Data",
+				label: __(frappe.model.unscrub(fieldname)),
+				default: item?.[fieldname],
+			})),
+			{
+				fieldname: "installed_on",
+				fieldtype: "Date",
+				label: __("Installed on"),
+				default: item?.installed_on,
+			},
+			{
+				fieldname: "warranty_expires_on",
+				fieldtype: "Date",
+				label: __("Warranty expires on"),
+				default: item?.warranty_expires_on,
+			},
+			{
+				fieldname: "parent_equipment",
+				fieldtype: "Select",
+				label: __("Parent equipment"),
+				options: [
+					"",
+					...(customer.hvac_equipment || [])
+						.filter((other) => other.id !== item?.id)
+						.map((other) => ({ value: other.id, label: `${other.name} · ${other.site_id}` })),
+				],
+				default: item?.parent_id,
+			},
+			{
+				fieldname: "status",
+				fieldtype: "Select",
+				label: __("Status"),
+				options: ["Active", "Inactive", "Replaced", "Retired"],
+				default: item?.status || "Active",
+				reqd: 1,
+			},
+		];
+		const dialog = new frappe.ui.Dialog({
+			title: item ? __("Edit equipment") : __("Add equipment"),
+			fields,
+			primary_action_label: __("Save"),
+			primary_action: async (values) => {
+				const { site, ...details } = values;
+				dialog.disable_primary_action();
+				try {
+					const response = await frappe.call("erpnext.field_os.api.equipment.save_equipment", {
+						company: this.company,
+						customer_id: customer.customer.id,
+						site_id: site,
+						values: details,
+						equipment_id: item?.id,
+						modified: history?.modified,
+					});
+					dialog.hide();
+					await this.loadEquipment(response.message.name);
+				} finally {
+					dialog.enable_primary_action();
+				}
+			},
+		});
+		dialog.show();
+	}
+
+	addEquipmentNote() {
+		const equipment = this.equipmentHistory.equipment;
+		const photos = [];
+		const dialog = new frappe.ui.Dialog({
+			title: __("Add service note"),
+			fields: [
+				{
+					fieldname: "note",
+					fieldtype: "Small Text",
+					label: __("Inspection or repair notes"),
+					reqd: 1,
+				},
+				{
+					fieldname: "visit",
+					fieldtype: "Select",
+					options: [
+						"",
+						...this.equipmentHistory.visits.map((visit) => ({
+							value: visit.name,
+							label: `${visit.name} · ${visit.mntc_date}`,
+						})),
+					],
+					label: __("Service visit"),
+				},
+				{
+					fieldname: "photos",
+					fieldtype: "HTML",
+					options: `<label>${__(
+						"Photos (optional, up to 20)"
+					)}</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple data-equipment-photos><p data-upload-status aria-live="polite"></p>`,
+				},
+			],
+			primary_action_label: __("Save service note"),
+			primary_action: async (values) => {
+				dialog.disable_primary_action();
+				try {
+					await frappe.call("erpnext.field_os.api.equipment.add_note", {
+						company: this.company,
+						equipment_id: equipment.id,
+						note: values.note,
+						visit_id: values.visit,
+						photo_urls: photos,
+					});
+					dialog.hide();
+					await this.loadEquipment(equipment.id);
+				} finally {
+					dialog.enable_primary_action();
+				}
+			},
+		});
+		dialog.fields_dict.photos.$wrapper.on("change", "input", async (event) => {
+			const files = Array.from(event.target.files);
+			if (photos.length + files.length > 20 || files.some((file) => file.size > 5000000)) {
+				frappe.msgprint(__("Choose at most 20 photos, each smaller than 5 MB."));
+				return;
+			}
+			dialog.disable_primary_action();
+			event.target.disabled = true;
+			try {
+				for (const file of files) {
+					const content = await new Promise((resolve, reject) => {
+						const reader = new FileReader();
+						reader.onload = () => resolve(reader.result.split(",")[1]);
+						reader.onerror = reject;
+						reader.readAsDataURL(file);
+					});
+					const response = await frappe.call("erpnext.field_os.api.equipment.upload_photo", {
+						company: this.company,
+						equipment_id: equipment.id,
+						content,
+					});
+					photos.push(response.message.file_url);
+				}
+			} finally {
+				dialog.fields_dict.photos.$wrapper
+					.find("[data-upload-status]")
+					.text(__("{0} photos uploaded", [photos.length]));
+				dialog.enable_primary_action();
+				event.target.disabled = false;
+				event.target.value = "";
+			}
+		});
+		dialog.show();
 	}
 
 	renderDispatch() {

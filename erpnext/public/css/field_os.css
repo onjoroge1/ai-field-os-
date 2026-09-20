@@ -47,3 +47,47 @@
 .field-os__dispatch-toolbar { display: flex; align-items: end; justify-content: space-between; margin-bottom: 18px; }.field-os__dispatch-toolbar h2 { margin: 3px 0 0; }.field-os__dispatch-toolbar label { color: var(--field-muted); font-size: 11px; }.field-os__dispatch-toolbar input { margin-left: 6px; padding: 7px 9px; border: 1px solid var(--field-line); border-radius: 9px; background: white; }.field-os__dispatch-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(235px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 14px; }.field-os__dispatch-column { min-height: 430px; padding: 12px; border: 1px solid var(--field-line); border-radius: 14px; background: rgba(255,255,255,.62); }.field-os__dispatch-column > header { display: flex; align-items: center; justify-content: space-between; padding: 5px 3px 13px; }.field-os__dispatch-column > header > div { display: flex; align-items: center; gap: 7px; }.field-os__dispatch-column > header small { color: var(--field-muted); }.field-os__tech-status { width: 8px; height: 8px; border-radius: 50%; background: #9aa5a1; }.field-os__tech-status.status-available { background: #2aa56f; }.field-os__tech-status.status-busy { background: #e8a330; }.field-os__tech-status.status-attention { background: #d54b52; }.field-os__job-card { margin-bottom: 9px; padding: 12px; border: 1px solid var(--field-line); border-left: 4px solid #3d83dc; border-radius: 11px; background: white; box-shadow: 0 3px 10px rgba(20,35,31,.04); }.field-os__job-card.has-conflict { border-left-color: #d54b52; background: #fff9f9; }.field-os__job-card > div { display: flex; justify-content: space-between; gap: 8px; }.field-os__job-card time { color: var(--field-green); font-size: 10px; font-weight: 800; }.field-os__job-card > div span { border-radius: 12px; background: #fbe5e6; color: #ad343a; padding: 2px 6px; font-size: 9px; font-weight: 700; }.field-os__job-card > strong { display: block; margin-top: 7px; }.field-os__job-card p { margin: 3px 0 11px; color: var(--field-muted); font-size: 11px; }.field-os__job-card footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #edf0ee; padding-top: 8px; }.field-os__job-card footer small { color: var(--field-muted); }.field-os__job-card footer button { border: 0; background: transparent; color: var(--field-green); font-size: 10px; font-weight: 700; }.field-os__column-empty { padding: 30px 0; text-align: center; color: #96a29e; font-size: 11px; }
 .field-os__inbox-toolbar { display: flex; justify-content: space-between; align-items: end; margin-bottom: 16px; }.field-os__inbox-toolbar h2 { margin: 3px 0 0; }.field-os__inbox-toolbar > div:last-child { display: flex; gap: 7px; }.field-os__inbox-toolbar select { padding: 7px 9px; border: 1px solid var(--field-line); border-radius: 9px; background: white; }.field-os__inbox { display: grid; grid-template-columns: minmax(300px, 38%) 1fr; min-height: 610px; overflow: hidden; border: 1px solid var(--field-line); border-radius: 16px; background: white; }.field-os__inbox > section:first-child { border-right: 1px solid var(--field-line); background: #fbfcfb; }.field-os__inbox-counts { display: flex; gap: 12px; padding: 11px 13px; border-bottom: 1px solid var(--field-line); color: var(--field-muted); font-size: 10px; font-weight: 700; }.field-os__inbox-counts .is-overdue { color: #bd3e45; }.field-os__inbox-list { max-height: 670px; overflow-y: auto; }.field-os__inbox-item { width: 100%; display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; border: 0; border-bottom: 1px solid #e8edea; background: transparent; padding: 13px 11px; text-align: left; }.field-os__inbox-item:hover, .field-os__inbox-item.is-active { background: #eef7f3; }.field-os__inbox-item.sla-overdue { box-shadow: inset 3px 0 #d54b52; }.field-os__inbox-item.sla-due_soon { box-shadow: inset 3px 0 #e8a330; }.field-os__channel { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 9px; background: #e9f1ee; color: var(--field-green); }.field-os__channel.channel-sms { background: #eeeafd; color: #6951bf; }.field-os__inbox-item strong, .field-os__inbox-item small, .field-os__inbox-item em { display: block; }.field-os__inbox-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.field-os__inbox-item small { margin: 3px 0; color: var(--field-muted); font-style: normal; }.field-os__inbox-item em { color: #81908a; font-size: 9px; font-style: normal; text-transform: capitalize; }.field-os__inbox-item time { color: var(--field-muted); font-size: 10px; }.field-os__thread-pane { min-width: 0; }.field-os__thread-head { display: flex; align-items: start; justify-content: space-between; gap: 15px; padding: 18px 20px; border-bottom: 1px solid var(--field-line); }.field-os__thread-head > div:last-child { display: flex; gap: 6px; }.field-os__thread-head h2 { margin: 3px 0; font-size: 20px; }.field-os__thread-head span { color: var(--field-muted); font-size: 11px; }.field-os__thread-context { display: flex; align-items: center; gap: 8px; padding: 9px 20px; border-bottom: 1px solid var(--field-line); background: #f7f9f7; }.field-os__thread-context label, .field-os__thread-context > span { color: var(--field-muted); font-size: 10px; }.field-os__thread-context select { margin-left: 5px; border: 0; background: transparent; color: var(--field-green); }.field-os__thread-context button { border: 1px solid var(--field-line); border-radius: 16px; background: white; padding: 4px 8px; color: var(--field-green); font-size: 10px; }.field-os__messages { max-height: 450px; overflow-y: auto; padding: 18px 20px; background: #fafbfa; }.field-os__message { max-width: 78%; margin-bottom: 12px; padding: 11px 13px; border: 1px solid var(--field-line); border-radius: 13px 13px 13px 3px; background: white; }.field-os__message.direction-outbound { margin-left: auto; border-color: #add5c5; border-radius: 13px 13px 3px 13px; background: #eaf8f2; }.field-os__message header, .field-os__message footer { display: flex; justify-content: space-between; gap: 10px; }.field-os__message header time, .field-os__message footer { color: var(--field-muted); font-size: 9px; }.field-os__message p { margin: 8px 0; white-space: pre-wrap; }.field-os__suggestions { padding: 13px 20px; border-top: 1px solid var(--field-line); }.field-os__suggestions > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }.field-os__suggestions button { border: 1px solid #a9cfc0; border-radius: 18px; background: #eff9f5; color: var(--field-green); padding: 6px 10px; font-size: 10px; font-weight: 700; }
 @media (max-width: 800px) { .field-os { grid-template-columns: 1fr; }.field-os__rail { padding: 12px 16px; }.field-os__brand { padding: 0 4px 10px; }.field-os__rail nav { display: flex; overflow-x: auto; }.field-os__rail button { white-space: nowrap; }.field-os__main { padding: 24px 16px 48px; }.field-os__topbar, .field-os__inbox-toolbar { align-items: stretch; flex-direction: column; }.field-os__search { width: 100%; }.field-os__metrics, .field-os__metrics--three { grid-template-columns: repeat(2, minmax(0, 1fr)); }.field-os__search-results { position: fixed; left: 16px; right: 16px; top: 165px; width: auto; }.field-os__customer-grid { grid-template-columns: 1fr; }.field-os__customer-grid .field-os__timeline { grid-column: 1; }.field-os__customer-head { grid-template-columns: 1fr; }.field-os__customer-head > div:last-child { text-align: left; }.field-os__inbox { grid-template-columns: 1fr; }.field-os__inbox > section:first-child { border-right: 0; border-bottom: 1px solid var(--field-line); }.field-os__inbox-list { max-height: 330px; }.field-os__thread-context { flex-wrap: wrap; }.field-os__message { max-width: 92%; } }
+
+.field-os__equipment-details {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	padding: 20px;
+	background: var(--card-bg);
+	border-radius: 12px;
+}
+.field-os__equipment-details dt {
+	color: var(--text-muted);
+	font-size: 12px;
+	font-weight: 500;
+}
+.field-os__equipment-details dd {
+	margin: 4px 0 0;
+}
+.field-os__equipment-notes article {
+	padding: 18px 0;
+	border-bottom: 1px solid var(--border-color);
+}
+.field-os__equipment-notes article > div:first-child {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+}
+.field-os__equipment-notes time {
+	color: var(--text-muted);
+}
+.field-os__equipment-notes p {
+	white-space: pre-wrap;
+	margin: 12px 0;
+}
+.field-os__equipment-photos {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.field-os__equipment-photos img {
+	width: 120px;
+	height: 90px;
+	object-fit: cover;
+	border-radius: 6px;
+}
