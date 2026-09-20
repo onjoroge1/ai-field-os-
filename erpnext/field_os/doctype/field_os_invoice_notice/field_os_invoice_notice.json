@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "completion",
+  "invoice",
+  "recipient",
+  "kind",
+  "email_queue",
+  "message",
+  "approved_by",
+  "proposal_id",
+  "key_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "reqd": 1,
+   "options": "Company"
+  },
+  {
+   "fieldname": "completion",
+   "fieldtype": "Link",
+   "label": "Completion",
+   "reqd": 1,
+   "options": "Field OS Work Completion"
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Link",
+   "label": "Invoice",
+   "reqd": 1,
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Data",
+   "label": "Recipient",
+   "reqd": 1,
+   "options": "Email"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Notice Type",
+   "reqd": 1,
+   "options": "Invoice\nFollow-up"
+  },
+  {
+   "fieldname": "email_queue",
+   "fieldtype": "Link",
+   "label": "Email Queue",
+   "reqd": 1,
+   "options": "Email Queue"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Link",
+   "label": "Inbox Message",
+   "reqd": 1,
+   "options": "Field OS Communication Message"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "reqd": 1,
+   "options": "User"
+  },
+  {
+   "fieldname": "proposal_id",
+   "fieldtype": "Data",
+   "label": "Proposal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "key_hash",
+   "fieldtype": "Data",
+   "label": "Retry Key",
+   "reqd": 1,
+   "unique": 1,
+   "hidden": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "module": "Field OS",
+ "name": "Field OS Invoice Notice",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "modified": "2026-09-20 00:00:00",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  },
+  {
+   "role": "Field OS Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Dispatcher",
+   "read": 1
+  },
+  {
+   "role": "Field OS Technician",
+   "read": 1
+  },
+  {
+   "role": "Field OS Billing",
+   "read": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

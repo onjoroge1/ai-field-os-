@@ -99,6 +99,10 @@ jobs:
           cd "$RUNNER_TEMP/fieldos-bench"
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_estimates_live.prepare_estimates
           env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_estimates_browser.py
+      - name: Verify completion evidence, stock, accounting and invoice delivery
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_completions_live.run
       - name: Verify maintenance agreements in browser
         env:
           FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance

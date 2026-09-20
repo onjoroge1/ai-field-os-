@@ -136,9 +136,26 @@ available from Customer 360.
 CI runs `test_agreements_live.run` on MariaDB and a browser flow covering creation,
 activation, recurring service job creation, renewal and the company dashboard.
 
+## Completion to invoice
+Completion service logic validates evidence and billables before an approved
+financial action delegates invoice creation to a repository. Live work-completion
+and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
+required. Repository writes must enforce versions atomically.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
 Frappe installed, this uses strict import stubs for the boundaries already mocked
 by the unit tests. It does not validate site migrations, database transactions,
 provider delivery, or browser workflows.
+
+
+### Service completion and invoicing
+
+Open **Service work** to capture an assigned visit. A technician saves a work summary, the safety/operation/cleanup checklist, billable service and parts, at least one private photo, and a captured customer signature with the signer's name. **Complete visit** submits the native Maintenance Visit and locks the evidence. The recurring agreement dashboard then shows that obligation as completed.
+
+A manager or billing operator opens the completed work, selects a due date and company tax template, and reviews **Preview invoice**. The preview saves an unsubmitted Sales Invoice; **Approve and post invoice** posts the native accounting and stock movements. Server-bound approvals expire after ten minutes and reject changed work, pricing or invoices. Durable receipts prevent duplicate invoices when an approved request is retried.
+
+Use **Preview invoice email** to review the customer recipient and balance, then explicitly approve sending. Email delivery uses the native outgoing queue and appears in completion history and the unified Inbox. Payment follow-ups also require approval, recheck the balance at send time, and are blocked for paid invoices. Delivery is never triggered automatically by completion or invoicing.
+
+Technicians can access only their assigned jobs and private evidence. Native record access and file downloads enforce both company and assignment. Completed evidence and its files cannot be rewritten or deleted. Corrections to posted invoices continue through ERPNext's native accounting cancellation/credit workflows.
