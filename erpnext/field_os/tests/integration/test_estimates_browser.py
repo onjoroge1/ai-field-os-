@@ -140,7 +140,7 @@ def run():
 		browser("wait", "#login_email")
 		browser("fill", "#login_email", "customer@example.invalid")
 		browser("fill", "#login_password", os.environ["FIELD_OS_TEST_PASSWORD"])
-		browser("click", ".for-login .btn-login")
+		browser("click", '.form-login button[type="submit"]')
 		browser("wait", "#estimate-decision")
 		browser("fill", "#approver", "Avery Customer")
 		browser("fill", "#comment", "Approved in browser")
