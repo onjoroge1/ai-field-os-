@@ -59,6 +59,7 @@ class LiveOnboarding(unittest.TestCase):
 		frappe.db.savepoint("onboarding_test")
 		frappe.set_user(OWNER)
 		self.state = onboarding.get_setup(COMPANY_A)
+		self.assertTrue(self.state["timezone"])
 
 	def tearDown(self):
 		super().tearDown()

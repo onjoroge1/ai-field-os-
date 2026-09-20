@@ -168,6 +168,8 @@ frappe.field_os.Onboarding = class {
 				{
 					fieldname: "days",
 					fieldtype: "MultiCheck",
+					sort_options: false,
+					columns: 3,
 					label: __("Business days"),
 					options: [
 						"Monday",

@@ -2,6 +2,7 @@
 
 import frappe
 from frappe import _
+from frappe.utils import get_system_timezone
 
 from erpnext.field_os.onboarding import native
 
@@ -15,7 +16,7 @@ def get_setup(company: str):
 		"system_manager": ctx.system_manager,
 		"country": frappe.db.get_value("Company", company, "country"),
 		"currency": frappe.db.get_value("Company", company, "default_currency"),
-		"timezone": frappe.db.get_single_value("System Settings", "time_zone"),
+		"timezone": get_system_timezone(),
 		"genders": sorted(
 			set(frappe.get_all("Gender", pluck="name"))
 			| {"Female", "Male", "Non-binary", "Prefer not to say"}
