@@ -62,3 +62,6 @@ Tenant-scoped equipment adds sites, hierarchy, model/serial, installation and wa
 
 ## Estimates
 Estimate sending is approval-gated, parts availability is surfaced, and customer decisions are audited.
+
+## Agreements
+Recurring maintenance derives due and overdue visits and identifies renewal windows.
