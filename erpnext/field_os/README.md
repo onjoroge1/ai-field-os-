@@ -74,3 +74,6 @@ The owner wizard covers locations/hours, users/roles, services/skills, notificat
 
 ## Migrations
 CSV templates run through dry-run validation, row errors, audited apply manifests, and approval-gated rollback.
+
+## Demo tenant
+A manifest-scoped, resettable HVAC dataset supports guided dispatch, renewal, and estimate-to-invoice scenarios.
