@@ -51,7 +51,13 @@ def integration(company, name):
 		["name", "from_address"],
 		as_dict=True,
 	)
-	if not row or not frappe.db.exists("Email Account", {"email_id": row.from_address, "enable_outgoing": 1}):
+	# Registered sandboxes can prepare estimates without a deliverable mailbox.
+	# Actual sending is blocked independently before queueing and at Email Queue insertion.
+	demo = frappe.db.exists("Field OS Demo Tenant", {"company": company})
+	if not row or (
+		not demo
+		and not frappe.db.exists("Email Account", {"email_id": row.from_address, "enable_outgoing": 1})
+	):
 		frappe.throw(_("Configure an enabled company email integration with an outgoing Email Account"))
 	return row
 

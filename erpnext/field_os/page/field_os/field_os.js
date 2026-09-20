@@ -7,6 +7,7 @@ frappe.pages["field-os"].on_page_load = function (wrapper) {
 			"/assets/erpnext/js/field_os_completions.js",
 			"/assets/erpnext/js/field_os_onboarding.js",
 			"/assets/erpnext/js/field_os_migrations.js",
+			"/assets/erpnext/js/field_os_demo.js",
 		],
 		() => {
 			const page = frappe.ui.make_app_page({
@@ -33,6 +34,7 @@ class FieldOSApp {
 		this.completions = new frappe.field_os.Completions(this);
 		this.onboarding = new frappe.field_os.Onboarding(this);
 		this.migrations = new frappe.field_os.Migrations(this);
+		this.demo = new frappe.field_os.Demo(this);
 		this.bind();
 		this.refresh();
 	}
@@ -50,6 +52,7 @@ class FieldOSApp {
 						<label class="field-os__search"><span>⌕</span><input data-role="search" placeholder="Search customers, jobs, invoices…"></label>
 					</header>
 					<section data-role="search-results" class="field-os__search-results is-hidden"></section>
+					<p data-demo-banner class="text-muted" style="padding:0 2rem" hidden></p>
 					<section data-role="content" aria-live="polite"><div class="field-os__loading">Loading operations…</div></section>
 				</main>
 			</div>`);
@@ -76,6 +79,7 @@ class FieldOSApp {
 			else if (this.activeView === "work") this.completions.dashboard();
 			else if (this.activeView === "setup") this.onboarding.open();
 			else if (this.activeView === "imports") this.migrations.open();
+			else if (this.activeView === "demo") this.demo.open();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
@@ -148,6 +152,14 @@ class FieldOSApp {
 				company: this.company,
 			});
 			this.session = response.message;
+			this.root
+				.find("[data-demo-banner]")
+				.prop("hidden", !this.session.demo_status)
+				.text(
+					this.session.demo_status
+						? `${this.company} · ${__("Synthetic demo")} · ${__("Email and SMS disabled")}`
+						: ""
+				);
 			this.renderNav();
 			await this.loadToday();
 		} catch (error) {
@@ -166,6 +178,7 @@ class FieldOSApp {
 			work: "✓",
 			setup: "⚙",
 			imports: "⇧",
+			demo: "◇",
 		};
 		this.root
 			.find('[data-role="nav"]')

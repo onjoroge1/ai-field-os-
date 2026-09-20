@@ -136,23 +136,6 @@ available from Customer 360.
 CI runs `test_agreements_live.run` on MariaDB and a browser flow covering creation,
 activation, recurring service job creation, renewal and the company dashboard.
 
-## Completion to invoice
-Completion service logic validates evidence and billables before an approved
-financial action delegates invoice creation to a repository. Live work-completion
-and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
-required. Repository writes must enforce versions atomically.
-
-## Onboarding
-Owner setup service contracts enforce required stages, allowed roles, and explicit
-integration results. Live company/user/settings writes, integration probes, and
-the operator wizard remain to be implemented.
-
-## Migrations
-CSV templates and services cover structural dry runs, row errors, apply manifests,
-and approval-gated rollback bound to the previewed record list. ERPNext import and
-rollback adapters, relational validation, persistent audit, and upload/error-report
-UI are still required. Adapters must apply and check manifests in one transaction.
-
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
@@ -207,3 +190,33 @@ The browser flow imports all three CSVs, opens the equipment through Customer 36
 and explicitly approves each rollback.
 
 Native import reference: https://docs.frappe.io/erpnext/data-import
+
+## PR22: guided HVAC demo
+
+A system administrator opens **Demo guide → Create demo company**, chooses a
+company label and a demo login password, and receives a new isolated native ERPNext
+company. The guide lists the synthetic owner and technician logins. It contains
+three customers/sites/equipment units, service history, an urgent no-cooling Inbox
+request, a planned diagnostic visit, overdue recurring maintenance and a sample
+approved estimate. Approval evidence explicitly identifies the synthetic seed.
+The guide opens the real Inbox, Customer 360, Dispatch, agreement, estimate and
+service-work screens. The shell labels the company as a synthetic demo throughout.
+
+All Field OS email/SMS sends are blocked for registered demo companies, and native
+reference-linked Email Queue insertion is guarded as well. No real mailbox or
+provider credentials are configured. The demo estimate integration supports local
+preparation only. Invoice posting remains native accounting inside the demo company.
+
+**Preview demo reset** explains the exact effect before approval: provision a fresh
+company generation, archive the old generation, and disable its two synthetic
+logins. Records and posted financial entries are retained in the archived company;
+reset never cancels, deletes or rewrites them. Set the new generation's login
+password, approve, and the guide switches to the fresh company. Reset requires a
+system administrator because it provisions a new tenant. Production companies
+cannot be registered retroactively or reset through this API. Audit/version-bound
+approvals and durable receipts prevent duplicate reset generations after retries.
+
+Native `test_demo_live.run` verifies dataset persistence, tenant permissions,
+communication blocking and reset after an actual posted invoice, including receipt
+replay after cache loss. The hosted browser flow provisions a demo, opens its
+synthetic Inbox, overdue agreement and approval evidence, then explicitly resets.

@@ -1,0 +1,138 @@
+{
+  "actions": [],
+  "autoname": "format:DEMO-{company}",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "status",
+    "seed_version",
+    "seeded_at",
+    "manifest_json",
+    "label",
+    "generation",
+    "creation_key",
+    "replacement_company",
+    "reset_key",
+    "reset_proposal",
+    "reset_by",
+    "reset_at"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1,
+      "unique": 1
+    },
+    {
+      "default": "Empty",
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Empty\nSeeding\nReady\nResetting\nFailed\nArchived",
+      "reqd": 1
+    },
+    {
+      "fieldname": "seed_version",
+      "fieldtype": "Data",
+      "label": "Seed Version",
+      "reqd": 1
+    },
+    {
+      "fieldname": "seeded_at",
+      "fieldtype": "Datetime",
+      "label": "Seeded At"
+    },
+    {
+      "default": "[]",
+      "fieldname": "manifest_json",
+      "fieldtype": "Code",
+      "label": "Seed Manifest",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "label",
+      "fieldtype": "Data",
+      "label": "Label"
+    },
+    {
+      "fieldname": "generation",
+      "fieldtype": "Int",
+      "label": "Generation"
+    },
+    {
+      "fieldname": "creation_key",
+      "fieldtype": "Data",
+      "label": "Creation Key",
+      "unique": 1
+    },
+    {
+      "fieldname": "replacement_company",
+      "fieldtype": "Link",
+      "label": "Replacement Company",
+      "options": "Company"
+    },
+    {
+      "fieldname": "reset_key",
+      "fieldtype": "Data",
+      "label": "Reset Key",
+      "unique": 1
+    },
+    {
+      "fieldname": "reset_proposal",
+      "fieldtype": "Data",
+      "label": "Reset Proposal"
+    },
+    {
+      "fieldname": "reset_by",
+      "fieldtype": "Link",
+      "label": "Reset By",
+      "options": "User"
+    },
+    {
+      "fieldname": "reset_at",
+      "fieldtype": "Datetime",
+      "label": "Reset At"
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "links": [],
+  "modified": "2026-09-20 00:00:00",
+  "modified_by": "Administrator",
+  "module": "Field OS",
+  "name": "Field OS Demo Tenant",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Owner",
+      "read": 1
+    },
+    {
+      "role": "Field OS Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Dispatcher",
+      "read": 1
+    },
+    {
+      "role": "Field OS Technician",
+      "read": 1
+    },
+    {
+      "role": "Field OS Billing",
+      "read": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1
+}

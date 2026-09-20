@@ -337,6 +337,7 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Demo Tenant": "erpnext.field_os.security.documents.company_query",
 	"Field OS Migration Batch": "erpnext.field_os.security.documents.company_query",
 	"Field OS Migration Record": "erpnext.field_os.security.documents.company_query",
 	"Field OS Onboarding": "erpnext.field_os.security.documents.company_query",
@@ -355,6 +356,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Demo Tenant": "erpnext.field_os.security.documents.demo_permission",
 	"Field OS Migration Batch": "erpnext.field_os.security.documents.onboarding_permission",
 	"Field OS Migration Record": "erpnext.field_os.security.documents.onboarding_permission",
 	"Field OS Onboarding": "erpnext.field_os.security.documents.onboarding_permission",
@@ -418,6 +420,7 @@ pre_submit_validation_doctypes = [
 ]
 
 doc_events = {
+	"Email Queue": {"before_insert": "erpnext.field_os.demo.safety.validate_email_queue"},
 	"*": {
 		"validate": [
 			"erpnext.support.doctype.service_level_agreement.service_level_agreement.apply",
