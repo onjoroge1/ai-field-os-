@@ -56,3 +56,6 @@ request, and reply through the existing approved email/SMS delivery flows.
 Corrections are recorded in **Field OS Inbox Correction** so operator feedback
 can be used by the later AI evaluation work without silently changing model
 behavior. Overdue and unassigned conversations also surface on **Today**.
+
+## HVAC equipment
+Tenant-scoped equipment adds sites, hierarchy, model/serial, installation and warranty metadata, plus technician notes and photos.
