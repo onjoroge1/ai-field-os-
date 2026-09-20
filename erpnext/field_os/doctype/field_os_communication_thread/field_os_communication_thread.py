@@ -1,6 +1,7 @@
 from hashlib import sha256
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -21,6 +22,6 @@ class FieldOSCommunicationThread(Document):
 				"name",
 			)
 			if duplicate:
-				frappe.throw("External thread ID already exists for this company and channel")
+				frappe.throw(_("External thread ID already exists for this company and channel"))
 		else:
 			self.external_thread_key = None
