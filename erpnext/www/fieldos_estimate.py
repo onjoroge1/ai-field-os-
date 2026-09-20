@@ -19,6 +19,11 @@ def get_context(context):
 	context.estimate = doc
 	context.quotation = quote
 	context.line_items = [
-		dict(description=strip_html(row.description), qty=row.qty, amount=row.amount) for row in quote.items
+		dict(
+			description=strip_html(row.description or row.item_name or row.item_code),
+			qty=row.qty,
+			amount=row.amount,
+		)
+		for row in quote.items
 	]
 	context.token = frappe.form_dict.token

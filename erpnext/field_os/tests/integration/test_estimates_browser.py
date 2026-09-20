@@ -130,7 +130,7 @@ def run():
 		message = message_from_bytes(delivered.get(timeout=10), policy=policy.default)
 		assert message["To"] == "customer@example.invalid"
 		body = message.get_body(preferencelist=("html",)).get_content()
-		assert "USD 25.00" in body
+		assert "USD 25.00" in body and "FieldOS Filter" in body
 		token = re.search(r"fieldos-estimate\?token=([A-Za-z0-9_-]+)", body).group(1)
 		browser("cookies", "clear")
 		browser("open", base + "/fieldos-estimate?token=" + token)
@@ -142,6 +142,7 @@ def run():
 		browser("fill", "#login_password", os.environ["FIELD_OS_TEST_PASSWORD"])
 		browser("click", '.form-login button[type="submit"]')
 		browser("wait", "#estimate-decision")
+		assert "FieldOS Filter" in browser("get", "text", "body")
 		browser("fill", "#approver", "Avery Customer")
 		browser("fill", "#comment", "Approved in browser")
 		browser("click", 'button[value="Approved"]')

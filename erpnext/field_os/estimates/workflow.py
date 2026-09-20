@@ -61,7 +61,7 @@ def detail(company, name):
 		items=[
 			{
 				"item_code": row.item_code,
-				"description": strip_html(row.description),
+				"description": strip_html(row.description or row.item_name or row.item_code),
 				"qty": row.qty,
 				"rate": row.rate,
 				"amount": row.amount,
@@ -173,7 +173,7 @@ def approve(context, proposal_id, key):
 	)
 	url = get_url(f"/fieldos-estimate?token={token}")
 	rows = "".join(
-		f"<tr><td>{escape(strip_html(row.description))}</td><td>{row.qty:g}</td><td>{row.amount:,.2f}</td></tr>"
+		f"<tr><td>{escape(strip_html(row.description or row.item_name or row.item_code))}</td><td>{row.qty:g}</td><td>{row.amount:,.2f}</td></tr>"
 		for row in quote.items
 	)
 	body = (
