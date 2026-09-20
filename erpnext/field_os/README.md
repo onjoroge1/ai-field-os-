@@ -79,6 +79,11 @@ financial action delegates invoice creation to a repository. Live work-completio
 and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
 required. Repository writes must enforce versions atomically.
 
+## Onboarding
+Owner setup service contracts enforce required stages, allowed roles, and explicit
+integration results. Live company/user/settings writes, integration probes, and
+the operator wizard remain to be implemented.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
