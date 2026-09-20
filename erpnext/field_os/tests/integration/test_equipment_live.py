@@ -12,11 +12,18 @@ import unittest
 import frappe
 from PIL import Image
 
+from erpnext.field_os.ai.operator_catalog import build_operator_registry
 from erpnext.field_os.api import equipment
 from erpnext.field_os.api.customers import customer_360
 from erpnext.field_os.api.operator import global_search
-from erpnext.field_os.equipment.frappe_repository import EQUIPMENT, NOTE
+from erpnext.field_os.equipment.frappe_repository import (
+	EQUIPMENT,
+	NOTE,
+	CompanyCustomerAdapter,
+	FrappeEquipmentRepository,
+)
 from erpnext.field_os.security.authorization import CapabilityDenied
+from erpnext.field_os.security.context import resolve_tenant_context
 
 COMPANY_A = "FieldOS Integration A"
 COMPANY_B = "FieldOS Integration B"
@@ -284,6 +291,45 @@ class LiveEquipment(unittest.TestCase):
 		self.assertNotIn(visits[COMPANY_B], [event["record_id"] for event in view["timeline"]])
 		with self.assertRaises(frappe.ValidationError):
 			equipment.add_note(COMPANY_A, self.parent, "Wrong visit", visit_id=visits[COMPANY_B])
+
+	def test_ask_operations_reads_native_history_in_selected_company(self):
+		frappe.set_user("Administrator")
+		private_customer = frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": "FieldOS Private B",
+				"customer_type": "Company",
+				"customer_group": "Commercial",
+				"territory": "All Territories",
+			}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Issue",
+				"subject": "Private request",
+				"company": COMPANY_B,
+				"customer": private_customer.name,
+			}
+		).insert()
+		frappe.set_user(TECH)
+		equipment.add_note(COMPANY_A, self.parent, "Checked compressor amperage")
+		registry = build_operator_registry(CompanyCustomerAdapter(COMPANY_A), FrappeEquipmentRepository())
+		context = resolve_tenant_context(COMPANY_A)
+		customers = registry.invoke(context, "find_customer", {"query": "FieldOS Shared"})
+		self.assertEqual(customers.data[0].id, self.customer)
+		self.assertEqual(registry.invoke(context, "find_customer", {"query": "FieldOS Private B"}).data, [])
+		result = registry.invoke(context, "get_equipment_history", {"customer_id": self.customer})
+		self.assertEqual(result.data[0].equipment.id, self.parent)
+		self.assertEqual(result.data[0].notes[0].note, "Checked compressor amperage")
+		self.assertEqual(result.citations[0].doctype, EQUIPMENT)
+		frappe.set_user(OTHER)
+		other = build_operator_registry(CompanyCustomerAdapter(COMPANY_B), FrappeEquipmentRepository())
+		self.assertEqual(
+			other.invoke(
+				resolve_tenant_context(COMPANY_B), "get_equipment_history", {"customer_id": self.customer}
+			).data,
+			(),
+		)
 
 	def test_native_update_cannot_move_equipment_to_other_company(self):
 		frappe.set_user("Administrator")

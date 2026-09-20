@@ -90,7 +90,7 @@ def run():
 		browser("fill", '.modal.show input[data-fieldname="equipment_name"]', "Browser heat pump")
 		browser("fill", '.modal.show input[data-fieldname="unit_type"]', "Heat pump")
 		browser("fill", '.modal.show input[data-fieldname="serial_number"]', "SN-UI-16")
-		browser("click", ".modal.show .modal-footer .btn-primary")
+		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", ".field-os__equipment-details")
 		assert "SN-UI-16" in browser("get", "text", ".field-os__equipment-details")
 		browser("screenshot", str(bench / "logs/equipment-manager.png"))
@@ -108,7 +108,7 @@ def run():
 			"--fn",
 			"document.querySelector('[data-upload-status]')?.textContent.includes('1 photos uploaded')",
 		)
-		browser("click", ".modal.show .modal-footer .btn-primary")
+		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", ".field-os__equipment-photos img")
 		browser("reload")
 		browser("wait", '[data-view="customers"]')

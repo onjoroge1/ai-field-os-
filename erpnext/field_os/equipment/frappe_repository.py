@@ -7,7 +7,9 @@ from frappe import _
 
 from erpnext.field_os.adapter.erpnext import ERPNextAdapter
 from erpnext.field_os.adapter.types import EquipmentRecord
+from erpnext.field_os.customers.frappe_access import ERPNextCustomerAccessPolicy
 from erpnext.field_os.equipment.models import EquipmentNote, HVACEquipment
+from erpnext.field_os.operations.frappe_repository import FrappeOperationsRepository
 
 EQUIPMENT = "Field OS HVAC Equipment"
 NOTE = "Field OS Equipment Note"
@@ -111,6 +113,17 @@ class FrappeEquipmentRepository:
 class CompanyCustomerAdapter(ERPNextAdapter):
 	def __init__(self, company):
 		self.company = company
+
+	def get_customer(self, customer_id):
+		if not ERPNextCustomerAccessPolicy().can_access(self.company, customer_id):
+			frappe.throw(_("Customer is not available in this company"), frappe.PermissionError)
+		return super().get_customer(customer_id)
+
+	def find_customers(self, query, limit=20):
+		rows = FrappeOperationsRepository()._search_customers(
+			self.company, f"%{query}%", max(1, min(int(limit), 100))
+		)
+		return [self.get_customer(row.record.record_id) for row in rows]
 
 	def _get_all(self, doctype, **kwargs):
 		if doctype in {"Maintenance Visit", "Quotation", "Sales Invoice"}:
