@@ -5,6 +5,7 @@ frappe.pages["field-os"].on_page_load = function (wrapper) {
 			"/assets/erpnext/js/field_os_estimates.js",
 			"/assets/erpnext/js/field_os_agreements.js",
 			"/assets/erpnext/js/field_os_completions.js",
+			"/assets/erpnext/js/field_os_onboarding.js",
 		],
 		() => {
 			const page = frappe.ui.make_app_page({
@@ -29,6 +30,7 @@ class FieldOSApp {
 		this.estimates = new frappe.field_os.Estimates(this);
 		this.agreements = new frappe.field_os.Agreements(this);
 		this.completions = new frappe.field_os.Completions(this);
+		this.onboarding = new frappe.field_os.Onboarding(this);
 		this.bind();
 		this.refresh();
 	}
@@ -70,6 +72,7 @@ class FieldOSApp {
 			else if (this.activeView === "inbox") this.renderInbox();
 			else if (this.activeView === "agreements") this.agreements.dashboard();
 			else if (this.activeView === "work") this.completions.dashboard();
+			else if (this.activeView === "setup") this.onboarding.open();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
@@ -158,6 +161,7 @@ class FieldOSApp {
 			inbox: "✉",
 			agreements: "▦",
 			work: "✓",
+			setup: "⚙",
 		};
 		this.root
 			.find('[data-role="nav"]')

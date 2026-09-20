@@ -337,6 +337,7 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Onboarding": "erpnext.field_os.security.documents.company_query",
 	"Field OS Work Completion": "erpnext.field_os.security.documents.completion_query",
 	"Field OS Invoice Notice": "erpnext.field_os.security.documents.completion_query",
 	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.company_query",
@@ -352,6 +353,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Onboarding": "erpnext.field_os.security.documents.onboarding_permission",
 	"Field OS Work Completion": "erpnext.field_os.security.documents.completion_permission",
 	"Field OS Invoice Notice": "erpnext.field_os.security.documents.completion_permission",
 	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.equipment_permission",

@@ -16,6 +16,7 @@ from erpnext.field_os.estimates.frappe_repository import (
 	stock,
 	version,
 )
+from erpnext.field_os.onboarding.native import price_list as onboarding_price_list
 from erpnext.field_os.security.authorization import authorize
 from erpnext.field_os.security.context import resolve_tenant_context
 from erpnext.stock.doctype.company_restriction.company_restriction import get_restriction_criterion
@@ -63,7 +64,11 @@ def options(company: str, customer_id: str):
 		.limit(500)
 		.run(as_dict=True)
 	)
+	from erpnext.field_os.onboarding.native import config
+
 	return {
+		"defaults": config(company, "notifications"),
+		"currency": frappe.db.get_value("Company", company, "default_currency"),
 		"items": items,
 		"recipients": recipients(customer_id),
 		"warehouses": frappe.get_all(
@@ -161,9 +166,11 @@ def save_estimate(
 	if not values.get("valid_until") or getdate(values["valid_until"]) < getdate(nowdate()):
 		frappe.throw(_("Choose a current estimate expiry date"))
 	quote.valid_till = values["valid_until"]
-	quote.selling_price_list = frappe.db.get_value(
-		"Customer", customer_id, "default_price_list"
-	) or frappe.db.get_single_value("Selling Settings", "selling_price_list")
+	quote.selling_price_list = (
+		frappe.db.get_value("Customer", customer_id, "default_price_list")
+		or onboarding_price_list(company)
+		or frappe.db.get_single_value("Selling Settings", "selling_price_list")
+	)
 	price_list = (
 		frappe.db.get_value(
 			"Price List", {"name": quote.selling_price_list, "enabled": 1, "selling": 1}, "currency"

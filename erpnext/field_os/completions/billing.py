@@ -13,6 +13,7 @@ from erpnext.field_os.actions.models import ActionProposal, RiskClass
 from erpnext.field_os.actions.validation import require_proposal
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
 from erpnext.field_os.completions import repository as repo
+from erpnext.field_os.onboarding.native import price_list as onboarding_price_list
 from erpnext.field_os.security.authorization import authorize
 from erpnext.stock.get_item_details import get_item_details
 
@@ -89,9 +90,11 @@ def preview(context, name, due, tax_template):
 		frappe.throw(_("Invoice due date must be today or later"))
 	repo.validate_document(doc)
 	company = frappe.get_doc("Company", context.company)
-	price_list = frappe.db.get_value(
-		"Customer", doc.customer, "default_price_list"
-	) or frappe.db.get_single_value("Selling Settings", "selling_price_list")
+	price_list = (
+		frappe.db.get_value("Customer", doc.customer, "default_price_list")
+		or onboarding_price_list(context.company)
+		or frappe.db.get_single_value("Selling Settings", "selling_price_list")
+	)
 	if not price_list or not frappe.db.exists(
 		"Price List", {"name": price_list, "enabled": 1, "selling": 1, "currency": company.default_currency}
 	):

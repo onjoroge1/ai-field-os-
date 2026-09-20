@@ -365,7 +365,10 @@ frappe.field_os.Completions = class {
 					fieldtype: "Date",
 					label: __("Payment due"),
 					reqd: 1,
-					default: frappe.datetime.add_days(frappe.datetime.get_today(), 30),
+					default: frappe.datetime.add_days(
+						frappe.datetime.get_today(),
+						options.defaults?.invoice_due_days ?? 30
+					),
 				},
 				{
 					fieldname: "tax_template",
@@ -423,7 +426,7 @@ frappe.field_os.Completions = class {
 					fieldtype: "Select",
 					label: __("Sending mailbox"),
 					options: options.integrations.map((x) => ({ label: x.from_address, value: x.name })),
-					default: options.integrations[0].name,
+					default: options.defaults?.email_integration || options.integrations[0].name,
 					reqd: 1,
 				},
 			],

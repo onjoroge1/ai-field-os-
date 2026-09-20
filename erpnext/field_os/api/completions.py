@@ -136,7 +136,10 @@ def options(company: str, completion_id: str):
 		limit=500,
 	)
 	blocked = get_blocked_masters("Item", [i.name for i in items], company) if items else []
+	from erpnext.field_os.onboarding.native import config
+
 	return {
+		"defaults": config(company, "notifications"),
 		"currency": frappe.db.get_value("Company", company, "default_currency"),
 		"items": [i for i in items if i.name not in blocked],
 		"warehouses": frappe.get_all(
