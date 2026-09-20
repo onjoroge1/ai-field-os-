@@ -68,6 +68,11 @@ decisions. Commit rechecks permission, proposal identity, and record version.
 ERPNext quotation/stock adapters, delivery, the decision audit writer, and UI are
 still required; the current service changes a status through an abstract repository.
 
+## Agreements
+Agreement service logic derives due and overdue visits and upcoming renewal windows.
+Live persistence, recurring job creation, renewal actions, and dashboard UI remain
+to be implemented.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
