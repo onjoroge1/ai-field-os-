@@ -90,9 +90,15 @@ and approval-gated rollback bound to the previewed record list. ERPNext import a
 rollback adapters, relational validation, persistent audit, and upload/error-report
 UI are still required. Adapters must apply and check manifests in one transaction.
 
+## Demo tenant
+Demo service contracts define repeatable seeding, manifest-bound reset approval,
+and three scenario outlines. A real synthetic dataset, transactional tenant-scoped
+seed/reset adapter, and guided operator UI remain to be implemented.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
 Frappe installed, this uses strict import stubs for the boundaries already mocked
 by the unit tests. It does not validate site migrations, database transactions,
-provider delivery, or browser workflows.
+provider delivery, or browser workflows. See the PR16–22 readiness document in
+`docs/field-os/pr16-22-readiness.md` before treating the roadmap phase as complete.
