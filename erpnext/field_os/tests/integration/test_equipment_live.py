@@ -127,7 +127,9 @@ class LiveEquipment(unittest.TestCase):
 	def setUp(self):
 		frappe.set_user(MANAGER)
 		frappe.db.savepoint("equipment_test")
-		self.parent = self.create("Rooftop heat pump")
+		self.parent = self.create(
+			"Rooftop heat pump", installed_on="2025-01-01", warranty_expires_on="2030-01-01"
+		)
 
 	def tearDown(self):
 		super().tearDown()
@@ -144,7 +146,12 @@ class LiveEquipment(unittest.TestCase):
 		state = equipment.history(COMPANY_A, self.parent)
 		self.assertEqual(state["equipment"]["name"], "Rooftop heat pump")
 		equipment.save_equipment(
-			COMPANY_A, self.customer, self.site, {"serial_number": "SN-123"}, self.parent, state["modified"]
+			COMPANY_A,
+			self.customer,
+			self.site,
+			{"serial_number": "SN-123", "warranty_expires_on": "2031-01-01"},
+			self.parent,
+			state["modified"],
 		)
 		self.assertEqual(equipment.history(COMPANY_A, self.parent)["equipment"]["serial_number"], "SN-123")
 		with self.assertRaises(frappe.TimestampMismatchError):
@@ -210,6 +217,17 @@ class LiveEquipment(unittest.TestCase):
 		self.assertTrue(file.has_permission("read"))
 		frappe.set_user(OTHER)
 		self.assertFalse(file.has_permission("read"))
+		self.assertFalse(file.is_downloadable())
+		frappe.set_user("Administrator")
+		permission = frappe.db.get_value(
+			"User Permission", {"user": TECH, "allow": "Company", "for_value": COMPANY_A}, "name"
+		)
+		frappe.delete_doc("User Permission", permission)
+		frappe.clear_cache(user=TECH)
+		frappe.set_user(TECH)
+		# Upload ownership must not survive loss of tenant access.
+		self.assertFalse(file.has_permission("read"))
+		self.assertFalse(file.is_downloadable())
 
 	def test_untrusted_photos_are_rejected(self):
 		frappe.set_user(TECH)
@@ -290,6 +308,7 @@ def seed_browser():
 	"""Prepare disposable operator accounts for browser acceptance; never run on production."""
 	import os
 
+	from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
 	from frappe.utils.password import update_password
 
 	prepare()
@@ -297,4 +316,6 @@ def seed_browser():
 	for user in (MANAGER, TECH, OTHER):
 		update_password(user, password)
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)
+	for app in ("frappe", "erpnext"):
+		enable_setup_wizard_complete(app)
 	frappe.clear_cache()

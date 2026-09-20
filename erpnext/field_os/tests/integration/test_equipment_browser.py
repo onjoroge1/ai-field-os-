@@ -130,6 +130,9 @@ def run():
 		)
 	finally:
 		try:
+			print(browser("snapshot", "-i"), flush=True)
+			print(browser("errors"), flush=True)
+			print(browser("network", "requests", "--filter", "/api/"), flush=True)
 			browser("screenshot", str(bench / "logs/equipment-last-state.png"))
 			browser("close")
 		finally:

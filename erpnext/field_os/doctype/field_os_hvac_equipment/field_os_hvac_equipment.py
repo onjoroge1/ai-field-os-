@@ -1,6 +1,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import getdate
 
 from erpnext.field_os.customers.frappe_access import ERPNextCustomerAccessPolicy
 from erpnext.field_os.security.authorization import authorize
@@ -25,7 +26,11 @@ class FieldOSHVACEquipment(Document):
 			},
 		):
 			frappe.throw(_("Site must be an address linked to this customer"))
-		if self.installed_on and self.warranty_expires_on and self.warranty_expires_on < self.installed_on:
+		if (
+			self.installed_on
+			and self.warranty_expires_on
+			and getdate(self.warranty_expires_on) < getdate(self.installed_on)
+		):
 			frappe.throw(_("Warranty expiry cannot be earlier than installation"))
 		parent_id = self.parent_equipment
 		seen = {self.name}

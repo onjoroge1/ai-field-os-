@@ -72,7 +72,10 @@ doctype_list_js = {
 
 page_js = {"print": "public/js/print.js"}
 
-extend_doctype_class = {"Address": "erpnext.accounts.custom.address.ERPNextAddress"}
+extend_doctype_class = {
+	"Address": "erpnext.accounts.custom.address.ERPNextAddress",
+	"File": "erpnext.field_os.equipment.files.EquipmentFile",
+}
 
 override_whitelisted_methods = {"frappe.www.contact.send_message": "erpnext.templates.utils.send_message"}
 
@@ -339,6 +342,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"File": "erpnext.field_os.equipment.files.file_permission",
 	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.equipment_permission",
 	"Field OS Equipment Note": "erpnext.field_os.security.documents.note_permission",
 	"Item": "erpnext.stock.doctype.company_restriction.company_restriction.has_permission",
