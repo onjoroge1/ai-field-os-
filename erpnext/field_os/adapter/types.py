@@ -51,6 +51,7 @@ class QuoteRecord:
 	status: str
 	total: Decimal
 	currency: str
+	transaction_date: date | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,3 +61,4 @@ class InvoiceRecord:
 	status: str
 	outstanding_amount: Decimal
 	currency: str
+	posting_date: date | None = None

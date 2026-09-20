@@ -1,0 +1,36 @@
+{
+ "actions": [],
+ "autoname": "format:EMAIL-{company}-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["company", "enabled", "provider", "provider_factory", "mailbox_key", "mailbox_key_hash", "from_address", "webhook_secret", "poll_enabled", "poll_cursor", "last_error"],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "in_standard_filter": 1, "label": "Company", "options": "Company", "reqd": 1},
+  {"default": "1", "fieldname": "enabled", "fieldtype": "Check", "in_list_view": 1, "label": "Enabled"},
+  {"fieldname": "provider", "fieldtype": "Data", "in_list_view": 1, "label": "Provider", "reqd": 1},
+  {"default": "erpnext.field_os.communications.email.FrappeEmailProvider", "fieldname": "provider_factory", "fieldtype": "Data", "label": "Provider Factory", "reqd": 1},
+  {"description": "Public opaque mailbox identifier used in the webhook URL.", "fieldname": "mailbox_key", "fieldtype": "Data", "label": "Mailbox Key", "no_copy": 1, "reqd": 1},
+  {"fieldname": "mailbox_key_hash", "fieldtype": "Data", "hidden": 1, "label": "Mailbox Key Hash", "no_copy": 1, "unique": 1},
+  {"fieldname": "from_address", "fieldtype": "Data", "label": "From Address", "options": "Email", "reqd": 1},
+  {"fieldname": "webhook_secret", "fieldtype": "Password", "label": "Webhook Secret", "no_copy": 1, "reqd": 1},
+  {"default": "0", "fieldname": "poll_enabled", "fieldtype": "Check", "label": "Poll Enabled"},
+  {"fieldname": "poll_cursor", "fieldtype": "Data", "hidden": 1, "label": "Poll Cursor", "no_copy": 1},
+  {"fieldname": "last_error", "fieldtype": "Small Text", "label": "Last Error", "read_only": 1}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-19 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Email Integration",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "export": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Owner", "write": 1},
+  {"create": 1, "read": 1, "report": 1, "role": "Field OS Manager", "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "provider"
+}

@@ -124,12 +124,19 @@ class ERPNextAdapter:
 		rows = self._get_all(
 			"Quotation",
 			filters={"quotation_to": "Customer", "party_name": customer_id},
-			fields=["name", "status", "grand_total", "currency"],
+			fields=["name", "status", "grand_total", "currency", "transaction_date"],
 			limit=max(1, min(limit, 100)),
 			order_by="transaction_date desc, modified desc",
 		)
 		return [
-			QuoteRecord(row.name, customer_id, row.status, _decimal(row.grand_total), row.currency)
+			QuoteRecord(
+				row.name,
+				customer_id,
+				row.status,
+				_decimal(row.grand_total),
+				row.currency,
+				getattr(row, "transaction_date", None),
+			)
 			for row in rows
 		]
 
@@ -137,12 +144,19 @@ class ERPNextAdapter:
 		rows = self._get_all(
 			"Sales Invoice",
 			filters={"customer": customer_id, "docstatus": ["!=", 2]},
-			fields=["name", "status", "outstanding_amount", "currency"],
+			fields=["name", "status", "outstanding_amount", "currency", "posting_date"],
 			limit=max(1, min(limit, 100)),
 			order_by="posting_date desc, modified desc",
 		)
 		return [
-			InvoiceRecord(row.name, customer_id, row.status, _decimal(row.outstanding_amount), row.currency)
+			InvoiceRecord(
+				row.name,
+				customer_id,
+				row.status,
+				_decimal(row.outstanding_amount),
+				row.currency,
+				getattr(row, "posting_date", None),
+			)
 			for row in rows
 		]
 
