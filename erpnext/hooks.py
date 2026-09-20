@@ -337,6 +337,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.company_query",
+	"Field OS Agreement Visit": "erpnext.field_os.security.documents.company_query",
 	"Field OS Estimate": "erpnext.field_os.security.documents.company_query",
 	"Field OS Estimate Decision": "erpnext.field_os.security.documents.company_query",
 	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.company_query",
@@ -348,6 +350,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.equipment_permission",
+	"Field OS Agreement Visit": "erpnext.field_os.security.documents.equipment_permission",
 	"Field OS Estimate": "erpnext.field_os.security.documents.estimate_permission",
 	"Field OS Estimate Decision": "erpnext.field_os.security.documents.estimate_permission",
 	"File": "erpnext.field_os.equipment.files.file_permission",
@@ -533,7 +537,7 @@ scheduler_events = {
 		"erpnext.utilities.doctype.video.video.update_youtube_data",
 		"erpnext.accounts.doctype.bank_transaction_rule.bank_transaction_rule.scheduler_run_rule_evaluation",
 	],
-	"daily": [],
+	"daily": ["erpnext.field_os.agreements.frappe_repository.expire_agreements"],
 	"daily_long": [],
 	"daily_maintenance": [
 		"erpnext.support.doctype.issue.issue.auto_close_tickets",
