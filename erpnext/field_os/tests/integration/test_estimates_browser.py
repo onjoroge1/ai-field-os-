@@ -99,6 +99,7 @@ def run():
 		browser("wait", '.modal.show [data-fieldname="items"] .grid-row')
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "[data-estimate-detail]")
+		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		assert "USD 25.00" in browser("get", "text", "[data-estimate-detail]")
 		name = browser("get", "text", "[data-estimate-detail] h2").strip()
 		browser("click", "[data-estimate-preview]")
@@ -106,6 +107,7 @@ def run():
 		assert "replenishment" in browser("get", "text", ".modal.show")
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "[data-estimate-record-decision]")
+		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		browser("screenshot", str(bench / "logs/estimates-operator.png"))
 
 		subprocess.run(
