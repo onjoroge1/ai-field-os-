@@ -30,6 +30,20 @@ def image_data(signature=False):
 
 def prepare_completions():
 	customer, site = prepare_agreements()
+	# Financial fixtures need the native company accounts configured, not just a chart.
+	company = frappe.get_doc("Company", COMPANY_A)
+	company.update_default_account = 1
+	company.set_default_accounts()
+	company.reload()
+	frappe.clear_document_cache("Company", COMPANY_A)
+	for key in (
+		"default_income_account",
+		"default_expense_account",
+		"default_receivable_account",
+		"default_cash_account",
+	):
+		if not company.get(key):
+			raise AssertionError(f"Financial fixture is missing {key}")
 	for name in ("field_os_work_completion", "field_os_invoice_notice"):
 		frappe.reload_doc("field_os", "doctype", name)
 	for user, role in ((BILLING, "Field OS Billing"), (UNASSIGNED, "Field OS Technician")):

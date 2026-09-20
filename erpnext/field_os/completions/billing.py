@@ -132,15 +132,13 @@ def preview(context, name, due, tax_template):
 			invoice,
 		)
 		# Resolve the same company/item accounting defaults as the native item picker.
-		# A new child row can initialize account fields to an empty string, which
-		# native update-if-missing validation does not consistently replace.
 		invoice.append(
 			"items",
 			{
 				**details,
 				**row,
-				"income_account": details.get("income_account"),
-				"expense_account": details.get("expense_account"),
+				"income_account": details.get("income_account") or company.default_income_account,
+				"expense_account": details.get("expense_account") or company.default_expense_account,
 				"cost_center": details.get("cost_center") or company.cost_center,
 			},
 		)
