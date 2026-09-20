@@ -115,7 +115,6 @@ jobs:
           FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
-          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_completions_live.seed_browser
           env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_completions_browser.py
       - name: Preserve completion browser screenshots
         if: always()

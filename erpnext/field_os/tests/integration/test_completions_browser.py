@@ -37,10 +37,28 @@ def run():
 		threading.Thread(target=smtp.serve_forever, daemon=True).start()
 		try:
 			with running_site("completions") as bench:
+				seed = subprocess.run(
+					[
+						str(bench / "env/bin/python"),
+						"-m",
+						"frappe.utils.bench_helper",
+						"frappe",
+						"--site",
+						"fieldos.test",
+						"execute",
+						"erpnext.field_os.tests.integration.test_completions_live.seed_browser",
+					],
+					cwd=bench / "sites",
+					check=True,
+					capture_output=True,
+					text=True,
+					timeout=90,
+				)
+				job = json.loads(seed.stdout.strip().splitlines()[-1])["job"]
 				login("fieldos-tech@example.invalid")
 				browser("click", '[data-view="work"]')
-				browser("wait", "[data-start-work]")
-				browser("click", "[data-start-work]")
+				browser("wait", f'[data-start-work="{job}"]')
+				browser("click", f'[data-start-work="{job}"]')
 				browser("wait", "[data-work-edit]")
 				name = browser("get", "text", "[data-work-detail] h2").strip()
 				browser("click", "[data-work-edit]")
