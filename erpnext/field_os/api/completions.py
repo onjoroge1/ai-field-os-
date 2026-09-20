@@ -137,6 +137,7 @@ def options(company: str, completion_id: str):
 	)
 	blocked = get_blocked_masters("Item", [i.name for i in items], company) if items else []
 	return {
+		"currency": frappe.db.get_value("Company", company, "default_currency"),
 		"items": [i for i in items if i.name not in blocked],
 		"warehouses": frappe.get_all(
 			"Warehouse", filters={"company": company, "disabled": 0, "is_group": 0}, pluck="name"

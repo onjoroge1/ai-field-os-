@@ -122,9 +122,10 @@ frappe.field_os.Completions = class {
 					work.summary || __("No service evidence recorded yet.")
 				)}</p><ul>${Object.entries(work.required_checks)
 					.map(([key, label]) => `<li>${work.checklist[key] ? "✓" : "○"} ${e(label)}</li>`)
-					.join("")}</ul><h3>${__("Billables")}</h3>${this.lines(work.billables)}<h3>${__(
-					"Service evidence"
-				)}</h3><div class="field-os__photos">${work.photos
+					.join("")}</ul><h3>${__("Billables")}</h3>${this.lines(
+					work.billables,
+					work.currency
+				)}<h3>${__("Service evidence")}</h3><div class="field-os__photos">${work.photos
 					.map(
 						(url) =>
 							`<a href="${e(url)}" target="_blank" rel="noopener"><img src="${e(
@@ -238,7 +239,7 @@ frappe.field_os.Completions = class {
 									item_code: options.items[0]?.name,
 									qty: 1,
 									rate: options.items[0]?.standard_rate || 0,
-									warehouse: options.items[0]?.is_stock_item ? options.warehouses[0] : "",
+									warehouse: "",
 								},
 						  ],
 					fields: [
@@ -261,8 +262,9 @@ frappe.field_os.Completions = class {
 						},
 						{
 							fieldname: "rate",
-							fieldtype: "Currency",
-							label: __("Rate"),
+							fieldtype: "Float",
+							precision: 2,
+							label: `${__("Rate")} (${options.currency})`,
 							in_list_view: 1,
 							columns: 2,
 						},

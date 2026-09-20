@@ -70,7 +70,7 @@ def run():
 				)
 				if isinstance(bounds, str):
 					bounds = json.loads(bounds)
-				x, y = bounds["x"], bounds["y"]
+				x, y = round(bounds["x"]), round(bounds["y"])
 				browser("mouse", "move", str(x + 20), str(y + 70))
 				browser("mouse", "down")
 				for dx, dy in ((40, 30), (65, 60), (95, 20), (135, 70), (185, 45)):

@@ -186,6 +186,7 @@ def detail(context, name):
 		)
 	}
 	result.update(
+		currency=frappe.db.get_value("Company", context.company, "default_currency"),
 		version=version(doc, job),
 		scheduled_for=job.mntc_date,
 		checklist=frappe.parse_json(doc.checklist_json or "{}"),

@@ -150,7 +150,15 @@ class FieldOSApp {
 	}
 
 	renderNav() {
-		const icons = { today: "◫", ask: "✦", customers: "◎", dispatch: "↗", inbox: "✉", agreements: "▦" };
+		const icons = {
+			today: "◫",
+			ask: "✦",
+			customers: "◎",
+			dispatch: "↗",
+			inbox: "✉",
+			agreements: "▦",
+			work: "✓",
+		};
 		this.root
 			.find('[data-role="nav"]')
 			.html(
