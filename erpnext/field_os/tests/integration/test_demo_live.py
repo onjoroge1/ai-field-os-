@@ -120,6 +120,13 @@ class LiveDemo(unittest.TestCase):
 		result = demo.approve_reset(company, pid, "reset-once", PASSWORD)
 		self.assertNotEqual(result["company"], company)
 		self.assertEqual(result["generation"], 2)
+		old_usernames = {frappe.db.get_value("User", user["email"], "username") for user in manifest["users"]}
+		new_usernames = {
+			frappe.db.get_value("User", user["email"], "username") for user in result["manifest"]["users"]
+		}
+		self.assertEqual(len(new_usernames), 2)
+		self.assertTrue(all(new_usernames))
+		self.assertFalse(new_usernames & old_usernames)
 		self.assertEqual(frappe.db.get_value("Sales Invoice", invoice.name, "docstatus"), 1)
 		self.assertEqual(frappe.db.count("GL Entry", {"voucher_no": invoice.name}), ledger)
 		self.assertEqual(frappe.db.count("Account", {"company": COMPANY_A}), production)
