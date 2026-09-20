@@ -62,6 +62,12 @@ Equipment DocTypes and service contracts cover sites, hierarchy, model/serial,
 installation and warranty metadata, plus technician notes and photo references.
 The live repository, operator API, and Customer 360 equipment UI remain to be wired.
 
+## Estimates
+Estimate service contracts support approval previews, parts shortages, and customer
+decisions. Commit rechecks permission, proposal identity, and record version.
+ERPNext quotation/stock adapters, delivery, the decision audit writer, and UI are
+still required; the current service changes a status through an abstract repository.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
