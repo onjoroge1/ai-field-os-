@@ -39,7 +39,10 @@ def run():
 				else:
 					self.wfile.write(b"250 OK\r\n")
 
-	mail = socketserver.TCPServer(("127.0.0.1", 1025), SMTP)
+	class SMTPServer(socketserver.TCPServer):
+		allow_reuse_address = True
+
+	mail = SMTPServer(("127.0.0.1", 1025), SMTP)
 	threading.Thread(target=mail.serve_forever, daemon=True).start()
 	server = subprocess.Popen(
 		[
