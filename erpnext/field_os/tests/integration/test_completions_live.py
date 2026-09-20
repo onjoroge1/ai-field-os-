@@ -262,7 +262,7 @@ class LiveCompletions(unittest.TestCase):
 			),
 			before - 1,
 		)
-		frappe.cache.flushdb()
+		frappe.cache.delete_value(f"field-os:proposal:{COMPANY_A}:{preview['proposal']['id']}")
 		retried = completions.approve_invoice(COMPANY_A, preview["proposal"]["id"], "post-once")
 		self.assertEqual(retried["invoice"], posted["invoice"])
 
@@ -289,7 +289,7 @@ class LiveCompletions(unittest.TestCase):
 		sent = completions.approve_notice(COMPANY_A, preview["proposal"]["id"], "mail-once")
 		self.assertEqual(len(sent["notices"]), 1)
 		self.assertEqual(sent["notices"][0].delivery_status, "Not Sent")
-		frappe.cache.flushdb()
+		frappe.cache.delete_value(f"field-os:proposal:{COMPANY_A}:{preview['proposal']['id']}")
 		self.assertEqual(
 			len(completions.approve_notice(COMPANY_A, preview["proposal"]["id"], "mail-once")["notices"]), 1
 		)
@@ -328,3 +328,32 @@ def run():
 	if not result.wasSuccessful():
 		raise AssertionError("Completion live acceptance checks failed")
 	return {"passed": result.testsRun}
+
+
+def seed_browser():
+	customer, site, _tax = prepare_completions()
+	job = make_job(customer, site)
+	frappe.set_user("Administrator")
+	return {"job": job}
+
+
+def deliver_browser_notice(completion_id):
+	if not frappe.conf.allow_tests:
+		raise RuntimeError("Use a disposable site with allow_tests enabled")
+	doc = frappe.get_doc(COMPLETION, completion_id)
+	if doc.company != COMPANY_A:
+		raise RuntimeError("Only browser fixture completions may be delivered")
+	account = frappe.get_doc("Email Account", {"email_id": "estimates@example.invalid"})
+	if account.smtp_server != "127.0.0.1" or int(account.smtp_port) != 1025:
+		raise RuntimeError("Browser acceptance requires local SMTP capture")
+	for notice in frappe.get_all(
+		NOTICE, filters={"completion": completion_id}, fields=["recipient", "email_queue"]
+	):
+		if notice.recipient != "customer@example.invalid":
+			raise RuntimeError("Only browser fixture recipients may be delivered")
+		queued = frappe.get_doc("Email Queue", notice.email_queue)
+		if queued.status == "Not Sent":
+			queued.send()
+	from erpnext.field_os.completions.notices import sync_delivery
+
+	sync_delivery()
