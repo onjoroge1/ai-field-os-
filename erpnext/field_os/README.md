@@ -75,6 +75,38 @@ real database, role, tenant and attachment checks. This creates explicitly named
 integration fixtures and rolls back test mutations. The Field OS workflow also
 runs these checks against MariaDB.
 
+## Estimates
+Open **Customer 360 → Estimates → New estimate** to enter labor/parts, quantities,
+rates, expiry, customer email and a company tax template. Drafts are native ERPNext
+Quotations; Field OS records their approval lifecycle separately. A customer must
+have a linked email address and an enabled selling price list in the company's
+currency. Stock parts require a warehouse in that company. A fiscal year, outgoing
+Email Account and enabled Field OS Email Integration are also required.
+
+**Preview send** shows the exact recipient, total including taxes, and parts
+shortages. **Approve and send** submits the quotation and atomically records the
+approval and native Email Queue entry. Retries return the recorded result without
+queuing another message. Stock availability is informational; sending does not
+reserve parts. Ask Operations uses the same server-generated preview and explicit
+approval, with current role, actor, company and quotation version checks.
+
+The customer receives a private, expiring link to review the quotation and approve
+or decline it. The link authorizes only that estimate; it does not grant a customer
+account or access to other records. Operators can also record a decision with the
+customer's name and confirmation evidence. Decisions are permanent, and a revision
+creates a new draft linked to the original. Approval links expire after at most 14
+days and reject changed or cancelled quotations.
+
+The native mail worker owns SMTP delivery and retries. Keep the scheduler and queue
+workers running. Delivery status appears on the estimate immediately and syncs to
+Inbox every 15 minutes. An email queued successfully is shown as **Not Sent** until
+the mail worker reports success; queueing alone is not delivery confirmation.
+
+Run `bench --site test_site execute erpnext.field_os.tests.integration.test_estimates_live.run`
+on an installed disposable site with `allow_tests=1`. CI also creates an estimate
+through the browser, delivers it to a local SMTP capture server, follows the actual
+email link as a customer and checks the persisted approval as an operator.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without

@@ -91,3 +91,5 @@
 	object-fit: cover;
 	border-radius: 6px;
 }
+.field-os__estimates { margin-top: 1rem; padding: 1.5rem; background: white; border: 1px solid #dce5df; border-radius: 16px; }
+.field-os__estimates [data-estimate-actions] { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }

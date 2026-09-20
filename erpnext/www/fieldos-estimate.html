@@ -1,0 +1,50 @@
+{% extends "templates/web.html" %}
+{% block head_include %}
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+{% endblock %}
+{% block page_content %}
+<main class="container py-5" style="max-width:760px">
+  <p>{{ estimate.company }}</p>
+  <h1>Estimate {{ quotation.name }}</h1>
+  <p>For {{ quotation.customer_name }} · Valid until {{ quotation.valid_till }}</p>
+  <table class="table"><thead><tr><th>Work or part</th><th>Quantity</th><th>Amount</th></tr></thead>
+    <tbody>{% for row in line_items %}<tr><td>{{ row.description }}</td><td>{{ row.qty }}</td><td>{{ "%.2f"|format(row.amount) }}</td></tr>{% endfor %}</tbody>
+  </table>
+  <p>Taxes: {{ quotation.currency }} {{ "%.2f"|format(quotation.total_taxes_and_charges) }}</p>
+  <h2>Total: {{ quotation.currency }} {{ "%.2f"|format(quotation.grand_total) }}</h2>
+  {% if estimate.status == "Sent" %}
+  <form id="estimate-decision">
+    <label for="approver">Your full name</label><input class="form-control" id="approver" maxlength="140" required autocomplete="name">
+    <label for="comment" class="mt-3">Comments (optional)</label><textarea class="form-control" id="comment" maxlength="2000"></textarea>
+    <p class="mt-3">By approving, you authorize the work and total shown above.</p>
+    <button class="btn btn-primary" type="submit" value="Approved">Approve estimate</button>
+    <button class="btn btn-default" type="submit" value="Rejected">Decline estimate</button>
+  </form>
+  {% else %}<p>This estimate is {{ estimate.status|lower }}. Contact {{ estimate.company }} if you need a revision.</p>{% endif %}
+  <p id="decision-result" role="status" aria-live="polite"></p>
+</main>
+{% endblock %}
+{% block script %}
+<script>
+document.querySelector("#estimate-decision")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const output = document.querySelector("#decision-result");
+  const decision = event.submitter.value;
+  form.querySelectorAll("button").forEach(button => { button.disabled = true; });
+  try {
+    const response = await fetch("/api/method/erpnext.field_os.api.estimates.customer_decision", {
+      method: "POST", headers: {"Content-Type": "application/json", "X-Frappe-CSRF-Token": frappe.csrf_token},
+      body: JSON.stringify({token: {{ token|tojson }}, decision, customer_name: document.querySelector("#approver").value, comment: document.querySelector("#comment").value})
+    });
+    if (!response.ok) throw new Error("We could not record your decision. Refresh the page or contact the company.");
+    output.textContent = "Your estimate is " + (await response.json()).message.status.toLowerCase() + ". Thank you.";
+    form.hidden = true;
+  } catch (error) {
+    output.textContent = error.message;
+    form.querySelectorAll("button").forEach(button => { button.disabled = false; });
+  }
+});
+</script>
+{% endblock %}

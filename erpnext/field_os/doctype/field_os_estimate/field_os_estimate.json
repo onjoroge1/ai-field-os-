@@ -1,0 +1,185 @@
+{
+  "doctype": "DocType",
+  "name": "Field OS Estimate",
+  "module": "Field OS",
+  "autoname": "format:EST-{#####}",
+  "engine": "InnoDB",
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "customer",
+      "fieldtype": "Link",
+      "label": "Customer",
+      "options": "Customer",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "quotation",
+      "fieldtype": "Link",
+      "label": "Quotation",
+      "options": "Quotation",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Draft\nSent\nApproved\nRejected",
+      "default": "Draft",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "recipient",
+      "fieldtype": "Data",
+      "label": "Customer email",
+      "options": "Email",
+      "reqd": 1
+    },
+    {
+      "fieldname": "email_integration",
+      "fieldtype": "Link",
+      "label": "Email integration",
+      "options": "Field OS Email Integration",
+      "reqd": 1
+    },
+    {
+      "fieldname": "quote_modified",
+      "fieldtype": "Datetime",
+      "label": "Quotation version",
+      "read_only": 1
+    },
+    {
+      "fieldname": "email_queue",
+      "fieldtype": "Link",
+      "label": "Delivery queue",
+      "options": "Email Queue",
+      "read_only": 1
+    },
+    {
+      "fieldname": "communication_message",
+      "fieldtype": "Link",
+      "label": "Inbox message",
+      "options": "Field OS Communication Message",
+      "read_only": 1
+    },
+    {
+      "fieldname": "proposal_id",
+      "fieldtype": "Data",
+      "label": "Approved proposal",
+      "read_only": 1
+    },
+    {
+      "fieldname": "idempotency_key",
+      "fieldtype": "Data",
+      "label": "Send key",
+      "read_only": 1
+    },
+    {
+      "fieldname": "approved_by",
+      "fieldtype": "Link",
+      "label": "Send approved by",
+      "options": "User",
+      "read_only": 1
+    },
+    {
+      "fieldname": "sent_at",
+      "fieldtype": "Datetime",
+      "label": "Queued at",
+      "read_only": 1
+    },
+    {
+      "fieldname": "approval_token_hash",
+      "fieldtype": "Data",
+      "label": "Approval token hash",
+      "hidden": 1,
+      "read_only": 1,
+      "no_copy": 1,
+      "unique": 1
+    },
+    {
+      "fieldname": "token_expires_at",
+      "fieldtype": "Datetime",
+      "label": "Approval expiry",
+      "read_only": 1
+    },
+    {
+      "fieldname": "revision_of",
+      "fieldtype": "Link",
+      "label": "Revises estimate",
+      "options": "Field OS Estimate",
+      "read_only": 1
+    },
+    {
+      "fieldname": "send_key_hash",
+      "fieldtype": "Data",
+      "label": "Send key hash",
+      "hidden": 1,
+      "unique": 1,
+      "no_copy": 1
+    }
+  ],
+  "field_order": [
+    "company",
+    "customer",
+    "quotation",
+    "status",
+    "recipient",
+    "email_integration",
+    "quote_modified",
+    "email_queue",
+    "communication_message",
+    "proposal_id",
+    "idempotency_key",
+    "approved_by",
+    "sent_at",
+    "approval_token_hash",
+    "token_expires_at",
+    "revision_of",
+    "send_key_hash"
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Owner",
+      "read": 1
+    },
+    {
+      "role": "Field OS Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Dispatcher",
+      "read": 1
+    },
+    {
+      "role": "Field OS Billing",
+      "read": 1
+    },
+    {
+      "role": "Field OS Technician",
+      "read": 1
+    }
+  ],
+  "actions": [],
+  "links": [],
+  "states": [],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "modified": "2026-09-20 00:00:00",
+  "modified_by": "Administrator",
+  "owner": "Administrator"
+}

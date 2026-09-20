@@ -24,6 +24,7 @@ class ToolDefinition:
 	handler: Callable[[TenantContext, dict[str, Any]], Any]
 	optional_fields: frozenset[str] = frozenset()
 	risk: RiskClass = RiskClass.READ
+	prepare: Callable[[TenantContext, dict[str, Any]], Any] | None = None
 
 
 class ToolRegistry:

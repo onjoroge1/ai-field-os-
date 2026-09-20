@@ -85,7 +85,11 @@ welcome_email = "erpnext.setup.utils.welcome_email"
 setup_wizard_requires = "assets/erpnext/js/setup_wizard.js"
 setup_wizard_stages = "erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"
 
-after_install = "erpnext.setup.install.after_install"
+after_install = [
+	"erpnext.setup.install.after_install",
+	"erpnext.field_os.install.ensure_native_read_permissions",
+]
+after_migrate = "erpnext.field_os.install.ensure_native_read_permissions"
 
 after_app_install = "erpnext.setup.install.after_app_install"
 after_app_uninstall = "erpnext.setup.install.after_app_uninstall"
@@ -333,6 +337,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Estimate": "erpnext.field_os.security.documents.company_query",
+	"Field OS Estimate Decision": "erpnext.field_os.security.documents.company_query",
 	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.company_query",
 	"Field OS Equipment Note": "erpnext.field_os.security.documents.company_query",
 	"Item": "erpnext.stock.doctype.company_restriction.company_restriction.get_permission_query_conditions",
@@ -342,6 +348,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Estimate": "erpnext.field_os.security.documents.estimate_permission",
+	"Field OS Estimate Decision": "erpnext.field_os.security.documents.estimate_permission",
 	"File": "erpnext.field_os.equipment.files.file_permission",
 	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.equipment_permission",
 	"Field OS Equipment Note": "erpnext.field_os.security.documents.note_permission",
@@ -498,6 +506,7 @@ auto_cancel_exempted_doctypes = [
 scheduler_events = {
 	"cron": {
 		"0/15 * * * *": [
+			"erpnext.field_os.estimates.workflow.sync_delivery",
 			"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
 			"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.run_parallel_reposting",
 			"erpnext.field_os.api.email.poll_enabled_mailboxes",
