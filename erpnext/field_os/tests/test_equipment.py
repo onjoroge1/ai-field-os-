@@ -1,5 +1,7 @@
+from dataclasses import replace
 from datetime import date
 from unittest import TestCase
+from unittest.mock import Mock
 
 from erpnext.field_os.equipment.models import EquipmentNote, HVACEquipment
 from erpnext.field_os.equipment.service import EquipmentService
@@ -34,6 +36,39 @@ class Repo:
 
 
 class TestEquipment(TestCase):
+	def test_hierarchy_rejects_cycle(self):
+		repo = Repo()
+		repo.parent = replace(repo.parent, parent_id=repo.child.id)
+		ctx = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))
+		with self.assertRaisesRegex(ValueError, "cycle"):
+			EquipmentService(repo).history(ctx, "E2")
+
+	def test_hierarchy_rejects_missing_and_wrong_site_parent(self):
+		ctx = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))
+		for change in ({"parent_id": "missing"}, {"site_id": "OTHER SITE"}):
+			with self.subTest(change=change):
+				repo = Repo()
+				repo.child = replace(repo.child, **change)
+				with self.assertRaises(ValueError):
+					EquipmentService(repo).history(ctx, "E2")
+
+	def test_history_rejects_wrong_equipment_notes(self):
+		repo = Repo()
+		tech = TenantContext("CO", "t", frozenset({FieldOSRole.TECHNICIAN}))
+		service = EquipmentService(repo)
+		service.add_note(tech, "E1", "For the parent")
+		with self.assertRaises(ValueError):
+			service.history(tech, "E2")
+
+	def test_note_checks_tenant_before_write(self):
+		repo = Repo()
+		repo.get_equipment = Mock(return_value=replace(repo.parent, company="OTHER"))
+		repo.create_note = Mock()
+		tech = TenantContext("CO", "t", frozenset({FieldOSRole.TECHNICIAN}))
+		with self.assertRaises(ValueError):
+			EquipmentService(repo).add_note(tech, "E1", "Wrong tenant")
+		repo.create_note.assert_not_called()
+
 	def test_hierarchy_notes_and_tenant_scope(self):
 		repo = Repo()
 		manager = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))
