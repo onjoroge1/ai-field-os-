@@ -58,7 +58,19 @@ can be used by the later AI evaluation work without silently changing model
 behavior. Overdue and unassigned conversations also surface on **Today**.
 
 ## HVAC equipment
-Tenant-scoped equipment adds sites, hierarchy, model/serial, installation and warranty metadata, plus technician notes and photos.
+Equipment DocTypes and service contracts cover sites, hierarchy, model/serial,
+installation and warranty metadata, plus technician notes and photo references.
+The live repository, operator API, and Customer 360 equipment UI remain to be wired.
 
 ## Estimates
-Estimate sending is approval-gated, parts availability is surfaced, and customer decisions are audited.
+Estimate service contracts support approval previews, parts shortages, and customer
+decisions. Commit rechecks permission, proposal identity, and record version.
+ERPNext quotation/stock adapters, delivery, the decision audit writer, and UI are
+still required; the current service changes a status through an abstract repository.
+
+## Isolated unit checks
+
+Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
+Frappe installed, this uses strict import stubs for the boundaries already mocked
+by the unit tests. It does not validate site migrations, database transactions,
+provider delivery, or browser workflows.
