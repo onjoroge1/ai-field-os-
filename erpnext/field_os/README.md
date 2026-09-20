@@ -57,6 +57,24 @@ Corrections are recorded in **Field OS Inbox Correction** so operator feedback
 can be used by the later AI evaluation work without silently changing model
 behavior. Overdue and unassigned conversations also surface on **Today**.
 
+## HVAC equipment
+Open a customer in Field OS to create equipment, edit its details, and inspect its
+parent/component hierarchy and service history. Managers and dispatchers maintain
+equipment; technicians add permanent notes, optional service-visit links, and
+private JPEG/PNG/WebP photos. Uploads strip image metadata and accept at most 20
+photos per note (5 MB and 25 megapixels per photo). Company, customer and site are
+fixed after creation; stale edits require a reload.
+
+Native Desk, document REST reads and private attachment access enforce the same
+company boundary as the operator APIs. Customer 360 scopes visits, quotations,
+invoices and equipment to the selected company, including shared customers.
+
+On a disposable, installed Frappe/ERPNext site, enable `allow_tests` and run
+`bench --site test_site execute erpnext.field_os.tests.live_equipment.run` for
+real database, role, tenant and attachment checks. This creates explicitly named
+integration fixtures and rolls back test mutations. The Field OS workflow also
+runs these checks against MariaDB.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without

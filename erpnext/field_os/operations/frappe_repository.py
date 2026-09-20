@@ -11,6 +11,7 @@ from typing import Any
 
 import frappe
 
+from erpnext.field_os.customers.frappe_access import COMPANY_CUSTOMER_LINKS
 from erpnext.field_os.operations.models import (
 	AttentionItem,
 	AttentionSeverity,
@@ -202,22 +203,30 @@ class FrappeOperationsRepository:
 		return results[:limit]
 
 	def _search_customers(self, company: str, like: str, limit: int) -> list[SearchResult]:
-		# Customers are global ERP masters, so prove tenant membership through a
-		# company-scoped operational document before returning them.
-		customer_ids = frappe.get_all(
-			"Sales Invoice",
-			filters={"company": company, "customer_name": ["like", like], "docstatus": ["!=", 2]},
-			pluck="customer",
-			distinct=True,
-			limit=limit,
-		)
-		if not customer_ids:
-			return []
-		rows = frappe.get_all(
-			"Customer",
-			filters={"name": ["in", customer_ids]},
-			fields=["name", "customer_name", "customer_group"],
-			limit=limit,
+		# Scope before limiting: customers with equipment or requests need not have an invoice yet.
+		customer = frappe.qb.DocType("Customer")
+		membership = None
+		for doctype, customer_field in COMPANY_CUSTOMER_LINKS:
+			reference = frappe.qb.DocType(doctype)
+			query = (
+				frappe.qb.from_(reference)
+				.select(reference[customer_field])
+				.where(reference.company == company)
+			)
+			if doctype == "Quotation":
+				query = query.where(reference.quotation_to == "Customer")
+			condition = customer.name.isin(query)
+			membership = condition if membership is None else membership | condition
+		rows = (
+			frappe.qb.from_(customer)
+			.select(customer.name, customer.customer_name, customer.customer_group)
+			.where(membership)
+			.where(
+				customer.name.like(like) | customer.customer_name.like(like) | customer.email_id.like(like)
+			)
+			.orderby(customer.customer_name)
+			.limit(limit)
+			.run(as_dict=True)
 		)
 		return [
 			SearchResult(

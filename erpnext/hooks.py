@@ -330,6 +330,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.company_query",
+	"Field OS Equipment Note": "erpnext.field_os.security.documents.company_query",
 	"Item": "erpnext.stock.doctype.company_restriction.company_restriction.get_permission_query_conditions",
 	"Customer": "erpnext.stock.doctype.company_restriction.company_restriction.get_permission_query_conditions",
 	"Supplier": "erpnext.stock.doctype.company_restriction.company_restriction.get_permission_query_conditions",
@@ -337,6 +339,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS HVAC Equipment": "erpnext.field_os.security.documents.equipment_permission",
+	"Field OS Equipment Note": "erpnext.field_os.security.documents.note_permission",
 	"Item": "erpnext.stock.doctype.company_restriction.company_restriction.has_permission",
 	"Customer": "erpnext.stock.doctype.company_restriction.company_restriction.has_permission",
 	"Supplier": "erpnext.stock.doctype.company_restriction.company_restriction.has_permission",

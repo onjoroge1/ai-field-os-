@@ -23,3 +23,57 @@ jobs:
           python-version: "3.14"
       - name: Compile Field OS Python
         run: python -m compileall -q erpnext/field_os
+      - name: Run isolated Field OS regression tests
+        run: python erpnext/field_os/tests/run_unit.py
+
+  equipment-live:
+    name: Equipment acceptance (MariaDB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: fieldos-test-root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      redis:
+        image: redis:7.2
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install runtime prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libmariadb-dev mariadb-client pkg-config
+          pip install frappe-bench
+          npm install -g yarn@1.22.22
+      - name: Create disposable Frappe and ERPNext site
+        run: |
+          bench init "$RUNNER_TEMP/fieldos-bench" --frappe-branch develop --skip-assets --python python3.14
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench get-app --skip-assets erpnext "$GITHUB_WORKSPACE"
+          bench set-config -g redis_cache redis://127.0.0.1:6379/0
+          bench set-config -g redis_queue redis://127.0.0.1:6379/1
+          bench set-config -g redis_socketio redis://127.0.0.1:6379/2
+          bench new-site fieldos.test --db-type mariadb --db-host 127.0.0.1 --mariadb-user-host-login-scope '%' --db-root-password fieldos-test-root --admin-password fieldos-test-admin
+          bench --site fieldos.test install-app erpnext
+          bench --site fieldos.test set-config allow_tests true
+      - name: Verify real equipment persistence and tenant permissions
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.live_equipment.run
+      - name: Preserve failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: equipment-site-logs
+          path: ${{ runner.temp }}/fieldos-bench/logs/
