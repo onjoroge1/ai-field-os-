@@ -78,6 +78,11 @@ def customer():
 	browser("wait", "[data-customer]")
 	browser("click", "[data-customer]")
 	browser("wait", ".field-os__customer-head")
+	browser(
+		"wait",
+		"--fn",
+		"!document.querySelector('[data-role=content]')?.textContent.includes('Loading…') && !frappe.ajax_count",
+	)
 
 
 def dialog():
