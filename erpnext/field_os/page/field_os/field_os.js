@@ -1,8 +1,19 @@
 frappe.pages["field-os"].on_page_load = function (wrapper) {
-	frappe.require(["/assets/erpnext/css/field_os.css", "/assets/erpnext/js/field_os_estimates.js"], () => {
-		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Field OS"), single_column: true });
-		new FieldOSApp(page);
-	});
+	frappe.require(
+		[
+			"/assets/erpnext/css/field_os.css",
+			"/assets/erpnext/js/field_os_estimates.js",
+			"/assets/erpnext/js/field_os_agreements.js",
+		],
+		() => {
+			const page = frappe.ui.make_app_page({
+				parent: wrapper,
+				title: __("Field OS"),
+				single_column: true,
+			});
+			new FieldOSApp(page);
+		}
+	);
 };
 
 class FieldOSApp {
@@ -15,6 +26,7 @@ class FieldOSApp {
 		this.page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
 		this.renderFrame();
 		this.estimates = new frappe.field_os.Estimates(this);
+		this.agreements = new frappe.field_os.Agreements(this);
 		this.bind();
 		this.refresh();
 	}
@@ -54,6 +66,7 @@ class FieldOSApp {
 			else if (this.activeView === "customers") this.renderCustomers();
 			else if (this.activeView === "dispatch") this.renderDispatch();
 			else if (this.activeView === "inbox") this.renderInbox();
+			else if (this.activeView === "agreements") this.agreements.dashboard();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {
@@ -134,7 +147,7 @@ class FieldOSApp {
 	}
 
 	renderNav() {
-		const icons = { today: "◫", ask: "✦", customers: "◎", dispatch: "↗", inbox: "✉" };
+		const icons = { today: "◫", ask: "✦", customers: "◎", dispatch: "↗", inbox: "✉", agreements: "▦" };
 		this.root
 			.find('[data-role="nav"]')
 			.html(
@@ -471,6 +484,7 @@ class FieldOSApp {
 				)}</h2><span>${data.timeline.length}</span></div>${timeline}</section>
 			</div>`);
 		this.estimates.renderCustomer(customer.id);
+		this.agreements.renderCustomer(customer.id);
 	}
 
 	equipmentCards(items) {

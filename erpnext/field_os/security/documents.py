@@ -46,6 +46,8 @@ def company_query(user=None, doctype=None):
 		"Field OS Equipment Note",
 		"Field OS Estimate",
 		"Field OS Estimate Decision",
+		"Field OS Maintenance Agreement",
+		"Field OS Agreement Visit",
 	}:
 		return "1=0"
 	return frappe.qb.DocType(doctype).company.isin(sorted(companies))

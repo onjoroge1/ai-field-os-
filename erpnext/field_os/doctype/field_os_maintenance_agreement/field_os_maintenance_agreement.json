@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "autoname": "format:AGR-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "customer",
+  "site",
+  "status",
+  "starts_on",
+  "ends_on",
+  "interval_months",
+  "renewal_notice_days",
+  "service_item",
+  "renewed_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Link",
+   "label": "Site",
+   "options": "Address",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nActive\nPaused\nExpired\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "starts_on",
+   "fieldtype": "Date",
+   "label": "Starts On",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ends_on",
+   "fieldtype": "Date",
+   "label": "Ends On",
+   "reqd": 1
+  },
+  {
+   "default": "6",
+   "fieldname": "interval_months",
+   "fieldtype": "Int",
+   "label": "Visit Interval Months",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "renewal_notice_days",
+   "fieldtype": "Int",
+   "label": "Renewal Notice Days",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_item",
+   "fieldtype": "Link",
+   "label": "Service Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "renewed_from",
+   "fieldtype": "Link",
+   "label": "Renewed From",
+   "options": "Field OS Maintenance Agreement",
+   "read_only": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Maintenance Agreement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  },
+  {
+   "role": "Field OS Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Dispatcher",
+   "read": 1
+  },
+  {
+   "role": "Field OS Technician",
+   "read": 1
+  },
+  {
+   "role": "Field OS Billing",
+   "read": 1
+  }
+ ],
+ "sort_field": "ends_on",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

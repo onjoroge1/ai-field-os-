@@ -109,6 +109,33 @@ on an installed disposable site with `allow_tests=1`. CI also creates an estimat
 through the browser, delivers it to a local SMTP capture server, follows the actual
 email link as a customer and checks the persisted approval as an operator.
 
+## Agreements
+Create a draft under **Customer 360 → Maintenance agreements**, select a linked
+service address and enabled non-stock service item, then activate it. Activation
+creates the term's recurring obligations once. The first visit is one interval
+after the start date, and later due dates stay anchored to the original start,
+including month-end dates. Terms are limited to ten years and become permanent
+on activation. Pausing stops new scheduling; existing service jobs remain visible.
+
+**Agreements** shows active contracts, visits due within a month, overdue work and
+renewals. Schedule an obligation with a company technician to create a native
+Maintenance Visit, then manage its assignment in **Dispatch**. A technician needs
+an enabled Sales Person linked to an active Employee in the selected company.
+Draft service jobs appear as Scheduled; only submitted, fully completed visits
+satisfy the obligation. Cancelled jobs can be replaced without duplicating the
+recurring obligation. Completed visits never move the next due date.
+
+**Create renewal** produces a separate draft beginning after the current term.
+Repeated requests return the same renewal. Review and activate it explicitly;
+there is no automatic financial commitment or customer notification. The daily
+scheduler expires old contracts while preserving unfulfilled obligations. The
+dashboard also computes expiry immediately, without waiting for the scheduler.
+Each company dashboard shows up to 500 contracts, with customer-specific views
+available from Customer 360.
+
+CI runs `test_agreements_live.run` on MariaDB and a browser flow covering creation,
+activation, recurring service job creation, renewal and the company dashboard.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without

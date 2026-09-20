@@ -8,6 +8,8 @@ from typing import Any
 import frappe
 
 from erpnext.field_os.dispatch.models import DispatchJob, TechnicianStatus
+from erpnext.field_os.security.authorization import authorize
+from erpnext.field_os.security.context import resolve_tenant_context
 
 
 def _value(row: Any, key: str, default=None):
@@ -26,6 +28,20 @@ def _as_time(value: Any) -> time:
 
 
 class FrappeDispatchRepository:
+	def ensure_available(self, company, technician_id, start, end, exclude=None):
+		# All Field OS scheduling paths serialize on the same technician record.
+		frappe.db.get_value("Sales Person", technician_id, "name", for_update=True)
+		start, end = start.replace(tzinfo=UTC), end.replace(tzinfo=UTC)
+		for job in self.list_jobs(company, start - timedelta(days=1), end + timedelta(days=1)):
+			if (
+				job.id != exclude
+				and job.technician_id == technician_id
+				and job.status != "Fully Completed"
+				and start < job.end
+				and end > job.start
+			):
+				raise ValueError("Technician already has a service job in this time window")
+
 	def list_jobs(self, company: str, start: datetime, end: datetime) -> list[DispatchJob]:
 		rows = frappe.get_all(
 			"Maintenance Visit",
@@ -42,6 +58,7 @@ class FrappeDispatchRepository:
 				"maintenance_type",
 				"completion_status",
 				"status",
+				"docstatus",
 				"mntc_date",
 				"mntc_time",
 				"modified",
@@ -95,6 +112,7 @@ class FrappeDispatchRepository:
 				"maintenance_type",
 				"completion_status",
 				"status",
+				"docstatus",
 				"mntc_date",
 				"mntc_time",
 				"modified",
@@ -108,9 +126,13 @@ class FrappeDispatchRepository:
 		return self._job(company, rows[0], assignments, technicians)
 
 	def update_assignment(self, company, job_id, technician_id, start, end, expected_version):
+		authorize(resolve_tenant_context(company), "dispatch")
+		frappe.db.get_value("Maintenance Visit", job_id, "name", for_update=True)
 		doc = frappe.get_doc("Maintenance Visit", job_id)
 		if doc.company != company:
 			raise PermissionError("Cross-tenant dispatch change rejected")
+		if doc.docstatus != 0:
+			raise ValueError("Only planned visits can be reassigned")
 		if expected_version and str(doc.modified) != str(expected_version):
 			raise ValueError("Job changed since preview; refresh before retrying")
 		employee = frappe.db.get_value(
@@ -124,11 +146,13 @@ class FrappeDispatchRepository:
 			raise ValueError("Technician is not active")
 		if not doc.purposes:
 			raise ValueError("Maintenance Visit has no service lines to assign")
+		self.ensure_available(company, technician_id, start, end, exclude=job_id)
 		doc.mntc_date = start.date()
 		doc.mntc_time = start.time().replace(tzinfo=None)
 		for purpose in doc.purposes:
 			purpose.service_person = technician_id
-		doc.save()
+		# Dispatch capability, company, version and active technician were verified above.
+		doc.save(ignore_permissions=True)
 		return self.get_job(company, job_id)
 
 	def _assignments(self, job_ids: list[str]) -> dict[str, str]:
@@ -152,7 +176,11 @@ class FrappeDispatchRepository:
 		start = datetime.combine(_value(row, "mntc_date"), _as_time(_value(row, "mntc_time")), tzinfo=UTC)
 		technician_id = assignments.get(job_id)
 		technician = technicians.get(technician_id)
-		status = _value(row, "completion_status") or _value(row, "status") or "Scheduled"
+		status = (
+			"Scheduled"
+			if _value(row, "docstatus") == 0
+			else _value(row, "completion_status") or _value(row, "status") or "Scheduled"
+		)
 		return DispatchJob(
 			job_id,
 			company,

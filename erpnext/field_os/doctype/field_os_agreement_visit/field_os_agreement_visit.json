@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "agreement",
+  "due_on",
+  "maintenance_visit"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "agreement",
+   "fieldtype": "Link",
+   "label": "Agreement",
+   "options": "Field OS Maintenance Agreement",
+   "reqd": 1
+  },
+  {
+   "fieldname": "due_on",
+   "fieldtype": "Date",
+   "label": "Due On",
+   "reqd": 1
+  },
+  {
+   "fieldname": "maintenance_visit",
+   "fieldtype": "Link",
+   "label": "Maintenance Visit",
+   "options": "Maintenance Visit",
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Agreement Visit",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  },
+  {
+   "role": "Field OS Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Dispatcher",
+   "read": 1
+  },
+  {
+   "role": "Field OS Technician",
+   "read": 1
+  },
+  {
+   "role": "Field OS Billing",
+   "read": 1
+  }
+ ],
+ "sort_field": "due_on",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}
