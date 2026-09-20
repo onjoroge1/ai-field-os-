@@ -68,3 +68,6 @@ Recurring maintenance derives due and overdue visits and identifies renewal wind
 
 ## Completion to invoice
 Technician evidence is required before an explicitly approved financial action can create an invoice.
+
+## Onboarding
+The owner wizard covers locations/hours, users/roles, services/skills, notification defaults, and integration checks.
