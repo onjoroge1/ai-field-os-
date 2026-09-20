@@ -18,10 +18,26 @@ def file_permission(doc, ptype=None, user=None, **kwargs):
 		context = resolve_tenant_context(company, user)
 	except TenantAccessDenied:
 		return False
-	return "read" in capabilities_for(context)
+	capability = (
+		"read" if ptype in (None, "read", "select", "print", "email", "report", "export") else "field_update"
+	)
+	return capability in capabilities_for(context)
 
 
 class EquipmentFile:
+	def validate_private_file_access(self):
+		# Copying an existing blob must not revive an uploader's revoked access.
+		if self.file_url:
+			existing = frappe.get_all(
+				"File",
+				filters={"file_url": self.file_url},
+				fields=["attached_to_doctype", "attached_to_name"],
+			)
+			protected = [row for row in existing if row.attached_to_doctype in PROTECTED]
+			if protected and not any(file_permission(row, "read") for row in protected):
+				frappe.throw(_("Equipment photo is not available in your companies"), frappe.PermissionError)
+		super().validate_private_file_access()
+
 	def is_downloadable(self):
 		# Frappe's downloader calls File.is_downloadable directly and otherwise allows
 		# the original uploader unconditionally, including after membership revocation.

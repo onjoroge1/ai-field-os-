@@ -228,6 +228,8 @@ class LiveEquipment(unittest.TestCase):
 		# Upload ownership must not survive loss of tenant access.
 		self.assertFalse(file.has_permission("read"))
 		self.assertFalse(file.is_downloadable())
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_doc({"doctype": "File", "file_url": url, "is_private": 1}).insert()
 
 	def test_untrusted_photos_are_rejected(self):
 		frappe.set_user(TECH)
