@@ -40,6 +40,7 @@ def run():
 		for name in reversed(batches):
 			browser("click", '[data-view="imports"]')
 			browser("wait", f'[data-import-batch="{name}"]')
+			browser("scrollintoview", f'[data-import-batch="{name}"]')
 			browser("click", f'[data-import-batch="{name}"]')
 			browser("wait", "[data-import-rollback]")
 			browser("click", "[data-import-rollback]")
