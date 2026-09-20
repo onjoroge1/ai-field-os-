@@ -58,22 +58,47 @@ can be used by the later AI evaluation work without silently changing model
 behavior. Overdue and unassigned conversations also surface on **Today**.
 
 ## HVAC equipment
-Tenant-scoped equipment adds sites, hierarchy, model/serial, installation and warranty metadata, plus technician notes and photos.
+Equipment DocTypes and service contracts cover sites, hierarchy, model/serial,
+installation and warranty metadata, plus technician notes and photo references.
+The live repository, operator API, and Customer 360 equipment UI remain to be wired.
 
 ## Estimates
-Estimate sending is approval-gated, parts availability is surfaced, and customer decisions are audited.
+Estimate service contracts support approval previews, parts shortages, and customer
+decisions. Commit rechecks permission, proposal identity, and record version.
+ERPNext quotation/stock adapters, delivery, the decision audit writer, and UI are
+still required; the current service changes a status through an abstract repository.
 
 ## Agreements
-Recurring maintenance derives due and overdue visits and identifies renewal windows.
+Agreement service logic derives due and overdue visits and upcoming renewal windows.
+Live persistence, recurring job creation, renewal actions, and dashboard UI remain
+to be implemented.
 
 ## Completion to invoice
-Technician evidence is required before an explicitly approved financial action can create an invoice.
+Completion service logic validates evidence and billables before an approved
+financial action delegates invoice creation to a repository. Live work-completion
+and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
+required. Repository writes must enforce versions atomically.
 
 ## Onboarding
-The owner wizard covers locations/hours, users/roles, services/skills, notification defaults, and integration checks.
+Owner setup service contracts enforce required stages, allowed roles, and explicit
+integration results. Live company/user/settings writes, integration probes, and
+the operator wizard remain to be implemented.
 
 ## Migrations
-CSV templates run through dry-run validation, row errors, audited apply manifests, and approval-gated rollback.
+CSV templates and services cover structural dry runs, row errors, apply manifests,
+and approval-gated rollback bound to the previewed record list. ERPNext import and
+rollback adapters, relational validation, persistent audit, and upload/error-report
+UI are still required. Adapters must apply and check manifests in one transaction.
 
 ## Demo tenant
-A manifest-scoped, resettable HVAC dataset supports guided dispatch, renewal, and estimate-to-invoice scenarios.
+Demo service contracts define repeatable seeding, manifest-bound reset approval,
+and three scenario outlines. A real synthetic dataset, transactional tenant-scoped
+seed/reset adapter, and guided operator UI remain to be implemented.
+
+## Isolated unit checks
+
+Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
+Frappe installed, this uses strict import stubs for the boundaries already mocked
+by the unit tests. It does not validate site migrations, database transactions,
+provider delivery, or browser workflows. See the PR16–22 readiness document in
+`docs/field-os/pr16-22-readiness.md` before treating the roadmap phase as complete.

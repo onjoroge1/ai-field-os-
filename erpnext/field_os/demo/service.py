@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.actions.models import ActionProposal, RiskClass
+from erpnext.field_os.actions.validation import require_proposal
 from erpnext.field_os.ai.conversation import ProposalStore
 from erpnext.field_os.security.authorization import authorize
 
@@ -60,25 +61,34 @@ class DemoService:
 
 	def seed(self, context):
 		authorize(context, "admin")
+		existing = self.repo.get(context.company)
+		if existing:
+			if existing.company != context.company or existing.status != "Ready":
+				raise ValueError("Demo is not ready for reuse")
+			return existing
 		return self.repo.seed(context.company)
 
 	def scenarios(self, context):
 		authorize(context, "read")
 		d = self.repo.get(context.company)
-		return (
-			SCENARIOS if d and d.status == "Ready" else (_ for _ in ()).throw(ValueError("Demo not seeded"))
-		)
+		if not d or d.company != context.company or d.status != "Ready":
+			raise ValueError("Demo not seeded")
+		return SCENARIOS
 
 	def preview_reset(self, context):
 		authorize(context, "admin")
 		d = self.repo.get(context.company)
-		if not d or d.status != "Ready":
+		if not d or d.company != context.company or d.status != "Ready" or not d.seed_version:
 			raise ValueError("Demo not ready")
 		now = datetime.now(UTC)
 		p = ActionProposal(
 			str(uuid4()),
 			"reset_demo",
-			{"seed_version": d.seed_version, "record_count": len(d.records)},
+			{
+				"seed_version": d.seed_version,
+				"record_count": len(d.records),
+				"records": [list(record) for record in d.records],
+			},
 			RiskClass.DESTRUCTIVE,
 			context.company,
 			context.user,
@@ -89,8 +99,25 @@ class DemoService:
 		return p
 
 	def reset(self, context, pid, key, engine: ActionEngine):
-		p = self.proposals.load(context.company, pid)
-		d = self.repo.get(context.company)
-		if d.seed_version != p.arguments["seed_version"]:
-			raise ValueError("Demo changed")
-		return engine.execute(p, key, lambda: self.repo.reset(context.company), approved_by=context.user)
+		authorize(context, "admin")
+		p = require_proposal(
+			self.proposals.load(context.company, pid),
+			context,
+			tool="reset_demo",
+			risk=RiskClass.DESTRUCTIVE,
+		)
+
+		def execute():
+			d = self.repo.get(context.company)
+			if (
+				not d
+				or d.company != context.company
+				or d.status != "Ready"
+				or not d.seed_version
+				or d.seed_version != p.arguments.get("seed_version")
+				or [list(record) for record in d.records] != p.arguments.get("records")
+			):
+				raise ValueError("Demo changed; regenerate the reset preview")
+			return self.repo.reset(context.company)
+
+		return engine.execute(p, key, execute, approved_by=context.user)

@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Protocol
 
 from erpnext.field_os.security.authorization import authorize
@@ -36,17 +36,34 @@ class OnboardingService:
 		authorize(context, "admin")
 		if step not in self.steps or not payload:
 			raise ValueError("Valid setup data is required")
-		if step == "users" and any(not set(x["roles"]) <= {r.value for r in FieldOSRole} for x in payload):
-			raise ValueError("Invalid Field OS role")
+		if not isinstance(payload, list) or any(not isinstance(item, dict) for item in payload):
+			raise ValueError("Setup data must be a list of records")
+		if step == "users":
+			for item in payload:
+				roles = item.get("roles")
+				if (
+					not isinstance(roles, list)
+					or not roles
+					or any(
+						not isinstance(role, str) or role not in {r.value for r in FieldOSRole}
+						for role in roles
+					)
+				):
+					raise ValueError("Invalid Field OS role")
 		return self.repo.save(context.company, step, payload)
 
 	def complete(self, context):
 		authorize(context, "admin")
 		state = self.repo.state(context.company)
+		if state.company != context.company:
+			raise ValueError("Setup state is outside this tenant")
 		missing = [x for x in self.steps if x not in state.completed_steps]
 		if missing:
 			raise ValueError("Missing steps: " + ", ".join(missing))
-		failed = [k for k, v in self.repo.checks(context.company).items() if not v]
+		checks = self.repo.checks(context.company)
+		if not checks:
+			raise ValueError("Integration checks have not run")
+		failed = [k for k, v in checks.items() if v is not True]
 		if failed:
 			raise ValueError("Integration checks failed: " + ", ".join(failed))
 		return self.repo.complete(context.company)
