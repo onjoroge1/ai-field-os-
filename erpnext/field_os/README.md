@@ -71,3 +71,6 @@ Technician evidence is required before an explicitly approved financial action c
 
 ## Onboarding
 The owner wizard covers locations/hours, users/roles, services/skills, notification defaults, and integration checks.
+
+## Migrations
+CSV templates run through dry-run validation, row errors, audited apply manifests, and approval-gated rollback.
