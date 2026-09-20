@@ -16,6 +16,13 @@ def run():
 		for key, value in (("address_line1", "100 Test Street"), ("city", "Boston")):
 			browser("click", f'.modal.show .grid-body [data-fieldname="{key}"]')
 			browser("fill", f'.modal.show .grid-body input[data-fieldname="{key}"]', value)
+		browser("click", ".modal.show .modal-title")
+		browser("scrollintoview", ".modal.show .btn-modal-primary")
+		browser(
+			"wait",
+			"--fn",
+			"!document.querySelector('.modal.show').getAnimations({subtree:true}).some(a => a.playState === 'running')",
+		)
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		browser("wait", "--fn", "document.querySelector('[data-setup]')?.textContent.includes('1 locations')")
@@ -33,6 +40,13 @@ def run():
 		if birth.startswith('"'):
 			birth = json.loads(birth)
 		browser("fill", '.modal.show input[data-fieldname="date_of_birth"]', birth)
+		browser("click", ".modal.show .modal-title")
+		browser("scrollintoview", ".modal.show .btn-modal-primary")
+		browser(
+			"wait",
+			"--fn",
+			"!document.querySelector('.modal.show').getAnimations({subtree:true}).some(a => a.playState === 'running')",
+		)
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		browser(
@@ -42,12 +56,26 @@ def run():
 		)
 		browser("click", '[data-setup-step="services"]')
 		dialog()
+		browser("click", ".modal.show .modal-title")
+		browser("scrollintoview", ".modal.show .btn-modal-primary")
+		browser(
+			"wait",
+			"--fn",
+			"!document.querySelector('.modal.show').getAnimations({subtree:true}).some(a => a.playState === 'running')",
+		)
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		browser("wait", "--fn", "document.querySelector('[data-setup]')?.textContent.includes('1 services')")
 		browser("click", '[data-setup-step="notifications"]')
 		dialog()
 		browser("fill", '.modal.show input[data-fieldname="invoice_due_days"]', "14")
+		browser("click", ".modal.show .modal-title")
+		browser("scrollintoview", ".modal.show .btn-modal-primary")
+		browser(
+			"wait",
+			"--fn",
+			"!document.querySelector('.modal.show').getAnimations({subtree:true}).some(a => a.playState === 'running')",
+		)
 		browser("click", ".modal.show .btn-modal-primary")
 		browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 		browser("wait", "[data-setup-finish]:enabled")
