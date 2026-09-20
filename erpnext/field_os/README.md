@@ -59,3 +59,6 @@ behavior. Overdue and unassigned conversations also surface on **Today**.
 
 ## HVAC equipment
 Tenant-scoped equipment adds sites, hierarchy, model/serial, installation and warranty metadata, plus technician notes and photos.
+
+## Estimates
+Estimate sending is approval-gated, parts availability is surfaced, and customer decisions are audited.

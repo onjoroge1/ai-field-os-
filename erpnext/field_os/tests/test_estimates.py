@@ -1,0 +1,58 @@
+from decimal import Decimal
+from unittest import TestCase
+
+from erpnext.field_os.actions.engine import ActionEngine
+from erpnext.field_os.estimates.models import Estimate, EstimateLine
+from erpnext.field_os.estimates.service import EstimateService
+from erpnext.field_os.security.context import TenantContext
+from erpnext.field_os.security.roles import FieldOSRole
+
+
+class Store:
+	def __init__(self):
+		self.x = {}
+
+	def save(self, p):
+		self.x[(p.company, p.id)] = p
+
+	def load(self, c, i):
+		return self.x.get((c, i))
+
+
+class Repo:
+	def __init__(self):
+		self.e = Estimate(
+			"Q1",
+			"CO",
+			"C1",
+			"Draft",
+			"USD",
+			None,
+			(EstimateLine("P1", "Part", Decimal(2), Decimal(10)),),
+			"v1",
+		)
+
+	def get(self, c, i):
+		if c != self.e.company:
+			raise ValueError("tenant")
+		return self.e
+
+	def stock(self, c, i, w):
+		return Decimal(1)
+
+	def set_status(self, c, i, s, v):
+		self.e = Estimate("Q1", c, "C1", s, "USD", None, self.e.lines, "v2")
+		return self.e
+
+
+class TestEstimates(TestCase):
+	def test_approval_and_parts_shortage(self):
+		r, s = Repo(), Store()
+		ctx = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))
+		service = EstimateService(r, s)
+		p, short = service.preview_send(ctx, "Q1")
+		self.assertEqual(short[0].item_code, "P1")
+		service.commit_send(ctx, p.id, "send:q1", ActionEngine())
+		self.assertEqual(r.e.status, "Sent")
+		service.customer_decision(ctx, "Q1", "Approved")
+		self.assertEqual(r.e.status, "Approved")
