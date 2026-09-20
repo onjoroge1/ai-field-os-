@@ -158,7 +158,10 @@ frappe.field_os.Estimates = class {
 						value: row.name,
 						label: row.from_address,
 					})),
-					default: item?.email_integration || options.integrations[0].name,
+					default:
+						item?.email_integration ||
+						options.defaults?.email_integration ||
+						options.integrations[0].name,
 					reqd: 1,
 				},
 				{
@@ -217,8 +220,9 @@ frappe.field_os.Estimates = class {
 						},
 						{
 							fieldname: "rate",
-							fieldtype: "Currency",
-							label: __("Rate"),
+							fieldtype: "Float",
+							precision: 2,
+							label: `${__("Rate")} (${options.currency})`,
 							reqd: 1,
 							in_list_view: 1,
 						},

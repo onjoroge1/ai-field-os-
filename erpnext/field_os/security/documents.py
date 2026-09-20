@@ -18,6 +18,14 @@ def estimate_permission(doc, ptype=None, user=None, **kwargs):
 	return _permission(doc, ptype, user, "quote")
 
 
+def onboarding_permission(doc, ptype=None, user=None, **kwargs):
+	try:
+		context = resolve_tenant_context(doc.company, user)
+		return ptype in (None, "read", "select") and "admin" in capabilities_for(context)
+	except TenantAccessDenied:
+		return False
+
+
 def completion_permission(doc, ptype=None, user=None, **kwargs):
 	from erpnext.field_os.completions import repository as repo
 
@@ -92,6 +100,7 @@ def company_query(user=None, doctype=None):
 		"Field OS Agreement Visit",
 		"Field OS Work Completion",
 		"Field OS Invoice Notice",
+		"Field OS Onboarding",
 	}:
 		return "1=0"
 	return frappe.qb.DocType(doctype).company.isin(sorted(companies))

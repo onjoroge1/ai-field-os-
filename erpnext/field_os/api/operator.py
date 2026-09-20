@@ -21,6 +21,7 @@ def _navigation(capabilities: frozenset[str]) -> list[dict[str, str]]:
 		("agreements", "Agreements", "read"),
 		("work", "Service work", "read"),
 		("inbox", "Inbox", "communicate"),
+		("setup", "Company setup", "admin"),
 	]
 	return [
 		{"id": item_id, "label": label} for item_id, label, capability in items if capability in capabilities

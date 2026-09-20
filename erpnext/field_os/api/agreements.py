@@ -195,7 +195,9 @@ def schedule_visit(company: str, visit_id: str, technician_id: str, scheduled_fo
 	when = get_datetime(scheduled_for)
 	if when.date() < getdate() or when.date() < getdate(agreement.starts_on):
 		frappe.throw(_("Schedule the visit today or later, after the contract starts"))
-	FrappeDispatchRepository().ensure_available(company, technician_id, when, when + timedelta(hours=2))
+	FrappeDispatchRepository().ensure_available(
+		company, technician_id, when, when + timedelta(hours=2), items=[agreement.service_item]
+	)
 	job = frappe.get_doc(
 		{
 			"doctype": "Maintenance Visit",

@@ -142,6 +142,11 @@ financial action delegates invoice creation to a repository. Live work-completio
 and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
 required. Repository writes must enforce versions atomically.
 
+## Onboarding
+Owner setup service contracts enforce required stages, allowed roles, and explicit
+integration results. Live company/user/settings writes, integration probes, and
+the operator wizard remain to be implemented.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
@@ -159,3 +164,12 @@ A manager or billing operator opens the completed work, selects a due date and c
 Use **Preview invoice email** to review the customer recipient and balance, then explicitly approve sending. Email delivery uses the native outgoing queue and appears in completion history and the unified Inbox. Payment follow-ups also require approval, recheck the balance at send time, and are blocked for paid invoices. Delivery is never triggered automatically by completion or invoicing.
 
 Technicians can access only their assigned jobs and private evidence. Native record access and file downloads enforce both company and assignment. Completed evidence and its files cannot be rewritten or deleted. Corrections to posted invoices continue through ERPNext's native accounting cancellation/credit workflows.
+
+
+### Company setup wizard
+
+Owners open **Company setup** to save office locations, business days/hours, team accounts and roles, service types with required skills, and notification defaults. System managers can create a new native company from the same screen. Hours use the site's displayed time zone. Technician accounts create native Employee and Sales Person records; provide the employee fields requested by ERPNext and share the initial password directly. The wizard does not send invitations. Only accounts created through this company's setup can be edited here; existing or shared accounts remain under the system administrator.
+
+Service types create native non-stock Items restricted to this company and prices in its own selling price list. Company setup does not alter global price lists. Customer-specific price lists continue to take precedence. Once setup is completed, Dispatch and agreement scheduling enforce the configured hours and service skills.
+
+**Run checks** verifies saved steps, native financial defaults, a dispatch technician, service skill coverage and the preferred channel's sending configuration. Choose None if a communication channel is not yet connected. Email/SMS credentials are configured through their native integration settings by the system administrator. Configuration checks do not claim to prove provider delivery; delivery history is recorded after an explicitly approved message. Default email sender and invoice due days prefill estimates and billing.

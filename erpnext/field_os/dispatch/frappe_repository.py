@@ -28,7 +28,10 @@ def _as_time(value: Any) -> time:
 
 
 class FrappeDispatchRepository:
-	def ensure_available(self, company, technician_id, start, end, exclude=None):
+	def ensure_available(self, company, technician_id, start, end, exclude=None, items=()):
+		from erpnext.field_os.onboarding.native import check_schedule
+
+		check_schedule(company, technician_id, start, end, items)
 		# All Field OS scheduling paths serialize on the same technician record.
 		frappe.db.get_value("Sales Person", technician_id, "name", for_update=True)
 		start, end = start.replace(tzinfo=UTC), end.replace(tzinfo=UTC)
@@ -146,7 +149,9 @@ class FrappeDispatchRepository:
 			raise ValueError("Technician is not active")
 		if not doc.purposes:
 			raise ValueError("Maintenance Visit has no service lines to assign")
-		self.ensure_available(company, technician_id, start, end, exclude=job_id)
+		self.ensure_available(
+			company, technician_id, start, end, exclude=job_id, items=[row.item_code for row in doc.purposes]
+		)
 		doc.mntc_date = start.date()
 		doc.mntc_time = start.time().replace(tzinfo=None)
 		for purpose in doc.purposes:
