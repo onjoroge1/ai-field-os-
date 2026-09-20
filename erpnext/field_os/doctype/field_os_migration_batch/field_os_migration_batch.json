@@ -1,0 +1,129 @@
+{
+  "actions": [],
+  "autoname": "format:MIG-{#####}",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "company",
+    "migration_kind",
+    "status",
+    "dry_run",
+    "rows_json",
+    "error_report",
+    "created_records_json",
+    "applied_by",
+    "applied_at",
+    "rolled_back_by",
+    "rolled_back_at",
+    "rollback_key_hash",
+    "rollback_proposal"
+  ],
+  "fields": [
+    {
+      "fieldname": "company",
+      "fieldtype": "Link",
+      "label": "Company",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "migration_kind",
+      "fieldtype": "Select",
+      "label": "Kind",
+      "options": "customers\nsites\nequipment",
+      "reqd": 1
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "Validated\nFailed Validation\nApplied\nApply Failed\nRolled Back",
+      "reqd": 1
+    },
+    {
+      "default": "1",
+      "fieldname": "dry_run",
+      "fieldtype": "Check",
+      "label": "Dry Run"
+    },
+    {
+      "fieldname": "rows_json",
+      "fieldtype": "Code",
+      "label": "Rows",
+      "options": "JSON",
+      "reqd": 1
+    },
+    {
+      "fieldname": "error_report",
+      "fieldtype": "Long Text",
+      "label": "Error Report"
+    },
+    {
+      "default": "[]",
+      "fieldname": "created_records_json",
+      "fieldtype": "Code",
+      "label": "Created Records",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "applied_by",
+      "fieldtype": "Link",
+      "label": "Applied By",
+      "reqd": 0,
+      "options": "User"
+    },
+    {
+      "fieldname": "applied_at",
+      "fieldtype": "Datetime",
+      "label": "Applied At",
+      "reqd": 0
+    },
+    {
+      "fieldname": "rolled_back_by",
+      "fieldtype": "Link",
+      "label": "Rolled Back By",
+      "reqd": 0,
+      "options": "User"
+    },
+    {
+      "fieldname": "rolled_back_at",
+      "fieldtype": "Datetime",
+      "label": "Rolled Back At",
+      "reqd": 0
+    },
+    {
+      "fieldname": "rollback_key_hash",
+      "fieldtype": "Data",
+      "label": "Rollback Key Hash",
+      "reqd": 0,
+      "unique": 1
+    },
+    {
+      "fieldname": "rollback_proposal",
+      "fieldtype": "Data",
+      "label": "Rollback Proposal",
+      "reqd": 0
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "links": [],
+  "modified": "2026-09-20 00:00:00",
+  "modified_by": "Administrator",
+  "module": "Field OS",
+  "name": "Field OS Migration Batch",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Owner",
+      "read": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1
+}

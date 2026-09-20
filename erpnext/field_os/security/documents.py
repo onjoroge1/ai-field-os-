@@ -101,6 +101,8 @@ def company_query(user=None, doctype=None):
 		"Field OS Work Completion",
 		"Field OS Invoice Notice",
 		"Field OS Onboarding",
+		"Field OS Migration Batch",
+		"Field OS Migration Record",
 	}:
 		return "1=0"
 	return frappe.qb.DocType(doctype).company.isin(sorted(companies))

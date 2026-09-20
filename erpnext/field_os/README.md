@@ -147,6 +147,12 @@ Owner setup service contracts enforce required stages, allowed roles, and explic
 integration results. Live company/user/settings writes, integration probes, and
 the operator wizard remain to be implemented.
 
+## Migrations
+CSV templates and services cover structural dry runs, row errors, apply manifests,
+and approval-gated rollback bound to the previewed record list. ERPNext import and
+rollback adapters, relational validation, persistent audit, and upload/error-report
+UI are still required. Adapters must apply and check manifests in one transaction.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
@@ -173,3 +179,31 @@ Owners open **Company setup** to save office locations, business days/hours, tea
 Service types create native non-stock Items restricted to this company and prices in its own selling price list. Company setup does not alter global price lists. Customer-specific price lists continue to take precedence. Once setup is completed, Dispatch and agreement scheduling enforce the configured hours and service skills.
 
 **Run checks** verifies saved steps, native financial defaults, a dispatch technician, service skill coverage and the preferred channel's sending configuration. Choose None if a communication channel is not yet connected. Email/SMS credentials are configured through their native integration settings by the system administrator. Configuration checks do not claim to prove provider delivery; delivery history is recorded after an explicitly approved message. Default email sender and invoice due days prefill estimates and billing.
+
+## PR21: CSV migration
+
+Owners open **Data import**, download a template, and import customers → sites →
+equipment. External IDs are unique per company and import type; references use
+those IDs, not global ERPNext names. Sites use the company's configured country.
+Each upload accepts up to 1000 rows / 2 MB. A dry run stores validation results
+without creating business records. Review all rows (Show more rows for large
+files), download the error report, then explicitly apply the import.
+
+Imports create company-restricted native Customers and Contacts, customer-linked
+Addresses, and HVAC Equipment. Existing records are never overwritten. Native
+validation failures roll back the entire batch and retain an error audit. Repeating
+Apply returns the existing receipt without duplicating records.
+
+**Preview rollback** lists every record to remove. Approval is bound to the owner,
+company and batch version and expires after ten minutes. Rollback preserves changed
+records, new comments, attachments and native document dependencies. Roll back
+equipment before sites, and sites before customers. The import audit and durable
+retry receipt remain after removal. Imported customers are searchable immediately,
+including before their first service transaction.
+
+Verification: isolated regression suite plus `test_migrations_live.run` on a native
+Frappe site and `test_migrations_browser.py` in the hosted MariaDB acceptance job.
+The browser flow imports all three CSVs, opens the equipment through Customer 360,
+and explicitly approves each rollback.
+
+Native import reference: https://docs.frappe.io/erpnext/data-import

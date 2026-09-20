@@ -203,6 +203,8 @@ class FrappeOperationsRepository:
 		return results[:limit]
 
 	def _search_customers(self, company: str, like: str, limit: int) -> list[SearchResult]:
+		from erpnext.stock.doctype.company_restriction.company_restriction import get_restriction_criterion
+
 		# Scope before limiting: customers with equipment or requests need not have an invoice yet.
 		customer = frappe.qb.DocType("Customer")
 		membership = None
@@ -221,6 +223,7 @@ class FrappeOperationsRepository:
 			frappe.qb.from_(customer)
 			.select(customer.name, customer.customer_name, customer.customer_group)
 			.where(membership)
+			.where(get_restriction_criterion("Customer", [company]))
 			.where(
 				customer.name.like(like) | customer.customer_name.like(like) | customer.email_id.like(like)
 			)
