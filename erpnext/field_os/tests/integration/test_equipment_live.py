@@ -1,6 +1,6 @@
 """Real-site acceptance checks. Run only on a disposable site with allow_tests=1.
 
-bench --site test_site execute erpnext.field_os.tests.live_equipment.run
+bench --site test_site execute erpnext.field_os.tests.integration.test_equipment_live.run
 Uses native documents and real permissions; no mocked database or permission calls.
 """
 
@@ -121,9 +121,8 @@ def prepare():
 class LiveEquipment(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.customer, cls.site = prepare()
-		# Master setup may commit (Company, User). Each actual test uses a savepoint.
-		frappe.db.commit()
 
 	def setUp(self):
 		frappe.set_user(MANAGER)
@@ -131,6 +130,7 @@ class LiveEquipment(unittest.TestCase):
 		self.parent = self.create("Rooftop heat pump")
 
 	def tearDown(self):
+		super().tearDown()
 		frappe.set_user("Administrator")
 		frappe.db.rollback(save_point="equipment_test")
 		frappe.clear_cache()
@@ -191,7 +191,8 @@ class LiveEquipment(unittest.TestCase):
 			equipment.history(COMPANY_A, self.parent)
 		with self.assertRaises(frappe.PermissionError):
 			equipment.history(COMPANY_B, self.parent)
-		self.assertFalse(frappe.has_permission(EQUIPMENT, "read", doc=self.parent))
+		permitted = frappe.has_permission(EQUIPMENT, "read", doc=self.parent)
+		self.assertFalse(permitted)
 		self.assertFalse(frappe.get_list(EQUIPMENT, filters={"name": self.parent}))
 		with self.assertRaises(frappe.PermissionError):
 			equipment.add_note(COMPANY_B, self.parent, "Wrong tenant")
@@ -283,3 +284,17 @@ def run():
 	if not result.wasSuccessful():
 		raise AssertionError("Equipment live acceptance checks failed")
 	return {"passed": result.testsRun}
+
+
+def seed_browser():
+	"""Prepare disposable operator accounts for browser acceptance; never run on production."""
+	import os
+
+	from frappe.utils.password import update_password
+
+	prepare()
+	password = os.environ["FIELD_OS_TEST_PASSWORD"]
+	for user in (MANAGER, TECH, OTHER):
+		update_password(user, password)
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
+	frappe.clear_cache()

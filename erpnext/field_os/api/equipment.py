@@ -44,7 +44,14 @@ def history(company: str, equipment_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
-def save_equipment(company: str, customer_id: str, site_id: str, values, equipment_id=None, modified=None):
+def save_equipment(
+	company: str,
+	customer_id: str,
+	site_id: str,
+	values: dict | str,
+	equipment_id: str | None = None,
+	modified: str | None = None,
+):
 	context = resolve_tenant_context(company)
 	authorize(context, "dispatch")
 	values = frappe.parse_json(values)
@@ -66,7 +73,13 @@ def save_equipment(company: str, customer_id: str, site_id: str, values, equipme
 
 
 @frappe.whitelist(methods=["POST"])
-def add_note(company: str, equipment_id: str, note: str, visit_id=None, photo_urls=None):
+def add_note(
+	company: str,
+	equipment_id: str,
+	note: str,
+	visit_id: str | None = None,
+	photo_urls: list[str] | str | None = None,
+):
 	photos = frappe.parse_json(photo_urls) if photo_urls else []
 	if not isinstance(photos, list) or any(not isinstance(url, str) for url in photos):
 		frappe.throw(_("Photos must be a list of private file URLs"))

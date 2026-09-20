@@ -70,7 +70,7 @@ company boundary as the operator APIs. Customer 360 scopes visits, quotations,
 invoices and equipment to the selected company, including shared customers.
 
 On a disposable, installed Frappe/ERPNext site, enable `allow_tests` and run
-`bench --site test_site execute erpnext.field_os.tests.live_equipment.run` for
+`bench --site test_site execute erpnext.field_os.tests.integration.test_equipment_live.run` for
 real database, role, tenant and attachment checks. This creates explicitly named
 integration fixtures and rolls back test mutations. The Field OS workflow also
 runs these checks against MariaDB.
