@@ -156,8 +156,10 @@ class FieldOSApp {
 			const response = await frappe.call("erpnext.field_os.api.operator.today", {
 				company: this.company,
 			});
+			if (this.activeView !== "today") return;
 			this.renderToday(response.message);
 		} catch (error) {
+			if (this.activeView !== "today") return;
 			this.renderError(error.message || __("Today's operations could not load."));
 		}
 	}
