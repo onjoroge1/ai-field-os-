@@ -1,6 +1,7 @@
 """Real quotations, stock links, queued email and customer approvals on a disposable site."""
 
 import html
+import os
 import re
 import unittest
 from datetime import timedelta
@@ -42,6 +43,20 @@ def prepare_estimates():
 			}
 		).insert()
 	frappe.db.set_value("Customer", customer, "email_id", "customer@example.invalid")
+	if not frappe.db.exists("User", "customer@example.invalid"):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "customer@example.invalid",
+				"first_name": "Avery",
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+			}
+		).insert()
+	if os.environ.get("FIELD_OS_TEST_PASSWORD"):
+		from frappe.utils.password import update_password
+
+		update_password("customer@example.invalid", os.environ["FIELD_OS_TEST_PASSWORD"])
 	if not frappe.db.exists("Price List", "FieldOS Selling"):
 		frappe.get_doc(
 			{
@@ -164,7 +179,7 @@ class LiveEstimates(unittest.TestCase):
 	def test_customer_approval_is_permanent_and_bound_to_version(self):
 		self.send()
 		token = self.token()
-		frappe.set_user("Guest")
+		frappe.set_user("customer@example.invalid")
 		decision = estimates.customer_decision(token, "Approved", "Avery Customer", "Please schedule")
 		self.assertEqual(decision["status"], "Approved")
 		self.assertEqual(
@@ -176,6 +191,15 @@ class LiveEstimates(unittest.TestCase):
 		self.assertEqual(len(estimates.get_estimate(COMPANY_A, self.estimate["name"])["decisions"]), 1)
 		with self.assertRaises(frappe.PermissionError):
 			frappe.get_doc(DECISION, {"field_os_estimate": self.estimate["name"]}).delete()
+
+	def test_customer_approval_requires_authenticated_recipient(self):
+		self.send()
+		token = self.token()
+		for user in ("Guest", MANAGER, OTHER, "Administrator"):
+			frappe.set_user(user)
+			with self.assertRaises(frappe.PermissionError):
+				estimates.customer_decision(token, "Approved", "Customer")
+		self.assertEqual(frappe.db.get_value(ESTIMATE, self.estimate["name"], "status"), "Sent")
 
 	def test_stale_preview_and_cross_company_warehouse_are_rejected(self):
 		preview = estimates.preview_send(COMPANY_A, self.estimate["name"])
@@ -206,7 +230,7 @@ class LiveEstimates(unittest.TestCase):
 		frappe.db.set_value(
 			ESTIMATE, self.estimate["name"], "token_expires_at", now_datetime() - timedelta(days=1)
 		)
-		frappe.set_user("Guest")
+		frappe.set_user("customer@example.invalid")
 		for candidate in ("invalid", token):
 			with self.assertRaises(frappe.PermissionError):
 				estimates.customer_decision(candidate, "Approved", "Customer")
@@ -221,7 +245,7 @@ class LiveEstimates(unittest.TestCase):
 		token = self.token()
 		frappe.set_user("Administrator")
 		frappe.get_doc("Quotation", self.estimate["quotation"]).cancel()
-		frappe.set_user("Guest")
+		frappe.set_user("customer@example.invalid")
 		with self.assertRaises(frappe.ValidationError):
 			estimates.customer_decision(token, "Approved", "Customer")
 

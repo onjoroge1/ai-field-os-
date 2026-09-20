@@ -181,6 +181,8 @@ def approve(context, proposal_id, key):
 		f"<table><thead><tr><th>Work or part</th><th>Quantity</th><th>Amount</th></tr></thead><tbody>{rows}</tbody></table>"
 		f"<p>Total including taxes: {escape(quote.currency)} {quote.grand_total:,.2f}</p>"
 		f'<p><a href="{escape(url, quote=True)}">Review and approve or decline your estimate</a></p>'
+		f"<p>Sign in with {escape(doc.recipient)} to record your decision. "
+		"If you do not have an account, reply to this email so we can help.</p>"
 		f"<p>This private approval link expires {expires.date().isoformat()}. Reply with any questions.</p>"
 	)
 	thread = frappe.get_doc(
@@ -242,6 +244,20 @@ def token_document(token, *, lock=False):
 		frappe.throw(_("Approval link is invalid or expired"), frappe.PermissionError)
 	if quote.docstatus != 1 or get_datetime(quote.modified) != get_datetime(doc.quote_modified):
 		frappe.throw(_("This quotation has changed. Please request a new estimate."))
+	return doc, quote
+
+
+def customer_document(token, *, lock=False):
+	"""Require both the private link and the authenticated, enabled recipient."""
+	user = frappe.session.user
+	if user == "Guest":
+		frappe.throw(_("Sign in with the estimate recipient's account"), frappe.PermissionError)
+	account = frappe.db.get_value("User", user, ["email", "enabled"], as_dict=True)
+	if not account or not account.enabled:
+		frappe.throw(_("Sign in with the estimate recipient's account"), frappe.PermissionError)
+	doc, quote = token_document(token, lock=lock)
+	if not account.email or account.email.casefold() != doc.recipient.casefold():
+		frappe.throw(_("This estimate belongs to a different customer account"), frappe.PermissionError)
 	return doc, quote
 
 

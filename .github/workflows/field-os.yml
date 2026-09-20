@@ -71,16 +71,16 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_equipment_live.run
-      - name: Verify real estimates, parts and customer approvals
-        run: |
-          cd "$RUNNER_TEMP/fieldos-bench"
-          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_estimates_live.run
       - name: Build operator assets and install browser
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
           bench build --apps frappe,erpnext
           npm install -g agent-browser@0.38.1
           agent-browser install
+      - name: Verify real estimates, parts and customer approvals
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_estimates_live.run
       - name: Verify manager and technician browser workflows
         env:
           FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance

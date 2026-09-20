@@ -214,15 +214,15 @@ def record_decision(
 	return workflow.decide(doc, quote, decision, customer_name, comment, evidence, context.user)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(methods=["POST"])
 def customer_decision(token: str, decision: str, customer_name: str, comment: str = ""):
-	doc, quote = workflow.token_document(token, lock=True)
+	doc, quote = workflow.customer_document(token, lock=True)
 	return workflow.decide(
 		doc,
 		quote,
 		decision,
 		customer_name,
 		comment,
-		"Private approval link delivered to " + doc.recipient,
-		"Customer email link",
+		"Authenticated recipient used the private approval link delivered to " + doc.recipient,
+		frappe.session.user,
 	)

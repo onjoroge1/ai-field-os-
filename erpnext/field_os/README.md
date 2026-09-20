@@ -90,9 +90,11 @@ queuing another message. Stock availability is informational; sending does not
 reserve parts. Ask Operations uses the same server-generated preview and explicit
 approval, with current role, actor, company and quotation version checks.
 
-The customer receives a private, expiring link to review the quotation and approve
-or decline it. The link authorizes only that estimate; it does not grant a customer
-account or access to other records. Operators can also record a decision with the
+The customer receives a private, expiring link and signs in with an enabled customer
+account whose email matches the recipient to review, approve or decline the quote.
+Both the private link and that account are required. Create customer portal accounts
+through ERPNext's normal user onboarding before using online approvals; customers
+without an account can reply to the email. Operators can also record a decision with the
 customer's name and confirmation evidence. Decisions are permanent, and a revision
 creates a new draft linked to the original. Approval links expire after at most 14
 days and reject changed or cancelled quotations.
