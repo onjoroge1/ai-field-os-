@@ -7,7 +7,7 @@ from frappe.utils import cint
 from erpnext.field_os.security.authorization import capabilities_for
 from erpnext.field_os.security.context import TenantAccessDenied, resolve_tenant_context
 
-PROTECTED = {"Field OS HVAC Equipment", "Field OS Equipment Note"}
+PROTECTED = {"Field OS HVAC Equipment", "Field OS Equipment Note", "Field OS Work Completion"}
 
 
 def file_permission(doc, ptype=None, user=None, **kwargs):
@@ -18,6 +18,13 @@ def file_permission(doc, ptype=None, user=None, **kwargs):
 		context = resolve_tenant_context(company, user)
 	except TenantAccessDenied:
 		return False
+	if doc.attached_to_doctype == "Field OS Work Completion":
+		from erpnext.field_os.completions import repository as repo
+
+		try:
+			repo.document(context, doc.attached_to_name)
+		except frappe.PermissionError:
+			return False
 	capability = (
 		"read" if ptype in (None, "read", "select", "print", "email", "report", "export") else "field_update"
 	)
@@ -25,6 +32,14 @@ def file_permission(doc, ptype=None, user=None, **kwargs):
 
 
 class EquipmentFile:
+	def on_trash(self):
+		if (
+			self.attached_to_doctype == "Field OS Work Completion"
+			and frappe.db.get_value("Field OS Work Completion", self.attached_to_name, "status") != "Draft"
+		):
+			frappe.throw(_("Completed service evidence cannot be deleted"))
+		super().on_trash()
+
 	def validate_private_file_access(self):
 		# Copying an existing blob must not revive an uploader's revoked access.
 		if self.file_url:

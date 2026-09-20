@@ -1,0 +1,186 @@
+{
+ "actions": [],
+ "autoname": "format:WORK-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "visit",
+  "customer",
+  "status",
+  "checklist_json",
+  "billables_json",
+  "signature",
+  "photos_json",
+  "completed_by",
+  "completed_at",
+  "invoice",
+  "site",
+  "summary",
+  "signer_name",
+  "visit_modified",
+  "proposed_invoice",
+  "invoice_approved_by",
+  "invoice_proposal",
+  "invoice_key_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "visit",
+   "fieldtype": "Link",
+   "label": "Visit",
+   "options": "Maintenance Visit",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nCompleted\nInvoiced",
+   "reqd": 1
+  },
+  {
+   "default": "[]",
+   "fieldname": "checklist_json",
+   "fieldtype": "Code",
+   "label": "Checklist",
+   "options": "JSON"
+  },
+  {
+   "default": "[]",
+   "fieldname": "billables_json",
+   "fieldtype": "Code",
+   "label": "Billables",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "signature",
+   "fieldtype": "Attach Image",
+   "label": "Customer Signature"
+  },
+  {
+   "default": "[]",
+   "fieldname": "photos_json",
+   "fieldtype": "Code",
+   "label": "Photos",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "completed_by",
+   "fieldtype": "Link",
+   "label": "Completed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At"
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Link",
+   "label": "Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Link",
+   "label": "Service Site",
+   "options": "Address"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Work performed"
+  },
+  {
+   "fieldname": "signer_name",
+   "fieldtype": "Data",
+   "label": "Customer signer"
+  },
+  {
+   "fieldname": "visit_modified",
+   "fieldtype": "Datetime",
+   "label": "Visit version",
+   "hidden": 1
+  },
+  {
+   "fieldname": "proposed_invoice",
+   "fieldtype": "Link",
+   "label": "Proposed Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "invoice_approved_by",
+   "fieldtype": "Link",
+   "label": "Invoice Approved By",
+   "options": "User"
+  },
+  {
+   "fieldname": "invoice_proposal",
+   "fieldtype": "Data",
+   "label": "Invoice Approval",
+   "hidden": 1
+  },
+  {
+   "fieldname": "invoice_key_hash",
+   "fieldtype": "Data",
+   "label": "Invoice Retry Key",
+   "hidden": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Field OS",
+ "name": "Field OS Work Completion",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  },
+  {
+   "role": "Field OS Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Dispatcher",
+   "read": 1
+  },
+  {
+   "role": "Field OS Technician",
+   "read": 1
+  },
+  {
+   "role": "Field OS Billing",
+   "read": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

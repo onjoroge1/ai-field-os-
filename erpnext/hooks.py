@@ -337,6 +337,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Work Completion": "erpnext.field_os.security.documents.completion_query",
+	"Field OS Invoice Notice": "erpnext.field_os.security.documents.completion_query",
 	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.company_query",
 	"Field OS Agreement Visit": "erpnext.field_os.security.documents.company_query",
 	"Field OS Estimate": "erpnext.field_os.security.documents.company_query",
@@ -350,6 +352,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Work Completion": "erpnext.field_os.security.documents.completion_permission",
+	"Field OS Invoice Notice": "erpnext.field_os.security.documents.completion_permission",
 	"Field OS Maintenance Agreement": "erpnext.field_os.security.documents.equipment_permission",
 	"Field OS Agreement Visit": "erpnext.field_os.security.documents.equipment_permission",
 	"Field OS Estimate": "erpnext.field_os.security.documents.estimate_permission",
@@ -511,6 +515,7 @@ scheduler_events = {
 	"cron": {
 		"0/15 * * * *": [
 			"erpnext.field_os.estimates.workflow.sync_delivery",
+			"erpnext.field_os.completions.notices.sync_delivery",
 			"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
 			"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.run_parallel_reposting",
 			"erpnext.field_os.api.email.poll_enabled_mailboxes",
