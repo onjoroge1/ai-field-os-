@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict
 
 import frappe
+from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
@@ -71,7 +72,7 @@ def create_draft(
 	to_payload = json.loads(to)
 	cc_payload = json.loads(cc or "[]")
 	if not isinstance(to_payload, list) or not isinstance(cc_payload, list):
-		frappe.throw("Email recipients must be JSON arrays", frappe.ValidationError)
+		frappe.throw(_("Email recipients must be JSON arrays"), frappe.ValidationError)
 	to_addresses = tuple(str(item).strip() for item in to_payload if str(item).strip())
 	cc_addresses = tuple(str(item).strip() for item in cc_payload if str(item).strip())
 	message = _service().draft(
