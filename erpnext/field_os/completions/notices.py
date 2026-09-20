@@ -120,6 +120,9 @@ def approve(context, proposal_id, key):
 			"recipients_json": json.dumps([{"address": args["recipient"], "participant_role": "customer"}]),
 		}
 	).insert(ignore_permissions=True)
+	from erpnext.field_os.demo.safety import block_delivery
+
+	block_delivery(context.company)
 	queued = frappe.sendmail(
 		recipients=[args["recipient"]],
 		sender=mailbox.from_address,

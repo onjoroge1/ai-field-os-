@@ -111,6 +111,9 @@ def approve_send(
 	company: str, proposal_id: str, integration_id: str, idempotency_key: str
 ) -> dict[str, object]:
 	context = resolve_tenant_context(company)
+	from erpnext.field_os.demo.safety import block_delivery
+
+	block_delivery(context.company)
 	integration = load_sms_integration(integration_id=integration_id)
 	if integration.company != context.company:
 		raise frappe.PermissionError("SMS integration belongs to another tenant")

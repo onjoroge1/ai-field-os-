@@ -101,8 +101,13 @@ def company_query(user=None, doctype=None):
 		"Field OS Work Completion",
 		"Field OS Invoice Notice",
 		"Field OS Onboarding",
+		"Field OS Demo Tenant",
 		"Field OS Migration Batch",
 		"Field OS Migration Record",
 	}:
 		return "1=0"
 	return frappe.qb.DocType(doctype).company.isin(sorted(companies))
+
+
+def demo_permission(doc, ptype=None, user=None, **kwargs):
+	return ptype in (None, "read", "select") and _permission(doc, ptype, user, "admin")

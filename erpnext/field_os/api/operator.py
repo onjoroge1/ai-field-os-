@@ -33,12 +33,17 @@ def _navigation(capabilities: frozenset[str]) -> list[dict[str, str]]:
 def bootstrap(company: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	capabilities = capabilities_for(context)
+	navigation = _navigation(capabilities)
+	demo_status = frappe.db.get_value("Field OS Demo Tenant", {"company": company}, "status")
+	if demo_status or context.system_manager:
+		navigation.append({"id": "demo", "label": "Demo guide"})
 	return {
 		"company": context.company,
 		"user": context.user,
 		"roles": sorted(role.value for role in context.roles),
 		"capabilities": sorted(capabilities),
-		"navigation": _navigation(capabilities),
+		"navigation": navigation,
+		"demo_status": demo_status,
 	}
 
 

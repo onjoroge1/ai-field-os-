@@ -1,5 +1,6 @@
 """Owner-controlled company setup with native records and operational configuration."""
 
+import hashlib
 import json
 from datetime import time
 from decimal import Decimal, InvalidOperation
@@ -223,6 +224,8 @@ def save_user(ctx, payload, expected):
 			{
 				"doctype": "User",
 				"email": email,
+				# Native username defaults use first names, which repeat across tenants and demos.
+				"username": "fieldos_" + hashlib.sha256(email.encode()).hexdigest()[:24],
 				"user_type": "System User",
 				"send_welcome_email": 0,
 				"new_password": row["password"],
