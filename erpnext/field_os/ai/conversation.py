@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.actions.models import ActionProposal, ExecutionReceipt, RiskClass
+from erpnext.field_os.actions.validation import require_proposal
 from erpnext.field_os.ai.intent import parse_tool_call
 from erpnext.field_os.ai.provider import ModelMessage, ModelProvider
 from erpnext.field_os.ai.tools import ToolRegistry
@@ -161,6 +162,13 @@ class AskOperationsService:
 					created_at=now,
 					expires_at=now + timedelta(minutes=10),
 				)
+				if definition.prepare:
+					proposal = require_proposal(
+						definition.prepare(context, call.arguments),
+						context,
+						tool=definition.name,
+						risk=definition.risk,
+					)
 				if self.proposals:
 					self.proposals.save(proposal)
 				approval = ApprovalCard(
@@ -194,6 +202,7 @@ class AskOperationsService:
 		if proposal is None:
 			raise ValueError("Proposal is missing or expired")
 		definition = self.registry.get(proposal.tool)
+		require_proposal(proposal, context, tool=definition.name, risk=definition.risk)
 		authorize(context, definition.capability)
 		receipt = action_engine.execute(
 			proposal,
@@ -211,6 +220,7 @@ class AskOperationsService:
 		if proposal is None:
 			raise ValueError("Proposal is missing or expired")
 		definition = self.registry.get(proposal.tool)
+		require_proposal(proposal, context, tool=definition.name, risk=definition.risk)
 		authorize(context, definition.capability)
 		self.proposals.delete(context.company, proposal_id)
 

@@ -14,6 +14,10 @@ def note_permission(doc, ptype=None, user=None, **kwargs):
 	return _permission(doc, ptype, user, "field_update")
 
 
+def estimate_permission(doc, ptype=None, user=None, **kwargs):
+	return _permission(doc, ptype, user, "quote")
+
+
 def _permission(doc, ptype, user, write_capability):
 	try:
 		context = resolve_tenant_context(doc.company, user)
@@ -37,6 +41,11 @@ def company_query(user=None, doctype=None):
 	if not companies:
 		return "1=0"
 	# The framework supplies doctype, never the request. Keep the identifier allowlisted.
-	if doctype not in {"Field OS HVAC Equipment", "Field OS Equipment Note"}:
+	if doctype not in {
+		"Field OS HVAC Equipment",
+		"Field OS Equipment Note",
+		"Field OS Estimate",
+		"Field OS Estimate Decision",
+	}:
 		return "1=0"
 	return frappe.qb.DocType(doctype).company.isin(sorted(companies))

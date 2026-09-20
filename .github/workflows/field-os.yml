@@ -77,6 +77,10 @@ jobs:
           bench build --apps frappe,erpnext
           npm install -g agent-browser@0.38.1
           agent-browser install
+      - name: Verify real estimates, parts and customer approvals
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_estimates_live.run
       - name: Verify manager and technician browser workflows
         env:
           FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance
@@ -84,6 +88,19 @@ jobs:
           cd "$RUNNER_TEMP/fieldos-bench"
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_equipment_live.seed_browser
           env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_equipment_browser.py
+      - name: Verify estimate delivery and customer approval in browser
+        env:
+          FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_estimates_live.prepare_estimates
+          env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_estimates_browser.py
+      - name: Preserve estimate browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estimates-browser
+          path: ${{ runner.temp }}/fieldos-bench/logs/estimates-*.png
       - name: Preserve browser screenshots
         if: always()
         uses: actions/upload-artifact@v4

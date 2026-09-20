@@ -13,15 +13,18 @@ from erpnext.field_os.ai.frappe_provider import configured_provider
 from erpnext.field_os.ai.frappe_store import FrappeCacheConversationStore, FrappeCacheProposalStore
 from erpnext.field_os.ai.operator_catalog import build_operator_registry
 from erpnext.field_os.equipment.frappe_repository import CompanyCustomerAdapter, FrappeEquipmentRepository
+from erpnext.field_os.estimates.ai import register as register_estimates
 from erpnext.field_os.security.context import resolve_tenant_context
 
 _ACTION_ENGINE = ActionEngine()
 
 
 def _service(company: str) -> AskOperationsService:
+	registry = build_operator_registry(CompanyCustomerAdapter(company), FrappeEquipmentRepository())
+	register_estimates(registry)
 	return AskOperationsService(
 		configured_provider(),
-		build_operator_registry(CompanyCustomerAdapter(company), FrappeEquipmentRepository()),
+		registry,
 		FrappeCacheConversationStore(),
 		FrappeCacheProposalStore(),
 	)

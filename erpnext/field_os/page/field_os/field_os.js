@@ -1,5 +1,5 @@
 frappe.pages["field-os"].on_page_load = function (wrapper) {
-	frappe.require("/assets/erpnext/css/field_os.css", () => {
+	frappe.require(["/assets/erpnext/css/field_os.css", "/assets/erpnext/js/field_os_estimates.js"], () => {
 		const page = frappe.ui.make_app_page({ parent: wrapper, title: __("Field OS"), single_column: true });
 		new FieldOSApp(page);
 	});
@@ -14,6 +14,7 @@ class FieldOSApp {
 		this.lastQuestion = "";
 		this.page.set_secondary_action(__("Refresh"), () => this.refresh(), "refresh");
 		this.renderFrame();
+		this.estimates = new frappe.field_os.Estimates(this);
 		this.bind();
 		this.refresh();
 	}
@@ -155,8 +156,10 @@ class FieldOSApp {
 			const response = await frappe.call("erpnext.field_os.api.operator.today", {
 				company: this.company,
 			});
+			if (this.activeView !== "today") return;
 			this.renderToday(response.message);
 		} catch (error) {
+			if (this.activeView !== "today") return;
 			this.renderError(error.message || __("Today's operations could not load."));
 		}
 	}
@@ -467,6 +470,7 @@ class FieldOSApp {
 					"Unified timeline"
 				)}</h2><span>${data.timeline.length}</span></div>${timeline}</section>
 			</div>`);
+		this.estimates.renderCustomer(customer.id);
 	}
 
 	equipmentCards(items) {
