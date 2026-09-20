@@ -33,7 +33,10 @@ def run():
 				else:
 					self.wfile.write(b"250 OK\r\n")
 
-	with socketserver.TCPServer(("127.0.0.1", 1025), SMTP) as smtp:
+	class SMTPServer(socketserver.TCPServer):
+		allow_reuse_address = True
+
+	with SMTPServer(("127.0.0.1", 1025), SMTP) as smtp:
 		threading.Thread(target=smtp.serve_forever, daemon=True).start()
 		try:
 			with running_site("completions") as bench:
