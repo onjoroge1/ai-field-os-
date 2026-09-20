@@ -86,6 +86,7 @@ def run():
 		customer()
 		browser("click", '[data-action="new-equipment"]')
 		browser("wait", '.modal.show input[data-fieldname="equipment_name"]')
+		browser("wait", "--fn", "Boolean(window.cur_dialog?.display)")
 		browser("select", '.modal.show select[data-fieldname="site"]', "FieldOS Service Site-Billing")
 		browser("fill", '.modal.show input[data-fieldname="equipment_name"]', "Browser heat pump")
 		browser("fill", '.modal.show input[data-fieldname="unit_type"]', "Heat pump")
@@ -99,6 +100,7 @@ def run():
 		open_equipment()
 		browser("click", '[data-action="equipment-note"]')
 		browser("wait", '.modal.show textarea[data-fieldname="note"]')
+		browser("wait", "--fn", "Boolean(window.cur_dialog?.display)")
 		browser("fill", '.modal.show textarea[data-fieldname="note"]', "Browser inspection: replaced filter")
 		photo = bench / "logs/equipment-upload.png"
 		Image.new("RGB", (32, 32), "blue").save(photo)
@@ -133,6 +135,13 @@ def run():
 		)
 	finally:
 		try:
+			print(
+				browser(
+					"eval",
+					"JSON.stringify({dialog: window.cur_dialog?.get_values(true), shown: window.cur_dialog?.display, primary: window.cur_dialog?.primary_action_fulfilled})",
+				),
+				flush=True,
+			)
 			print(browser("snapshot", "-i"), flush=True)
 			print(browser("errors"), flush=True)
 			print(browser("network", "requests", "--filter", "/api/"), flush=True)
