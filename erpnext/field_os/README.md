@@ -65,3 +65,6 @@ Estimate sending is approval-gated, parts availability is surfaced, and customer
 
 ## Agreements
 Recurring maintenance derives due and overdue visits and identifies renewal windows.
+
+## Completion to invoice
+Technician evidence is required before an explicitly approved financial action can create an invoice.
