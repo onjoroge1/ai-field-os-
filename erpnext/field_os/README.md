@@ -84,6 +84,12 @@ Owner setup service contracts enforce required stages, allowed roles, and explic
 integration results. Live company/user/settings writes, integration probes, and
 the operator wizard remain to be implemented.
 
+## Migrations
+CSV templates and services cover structural dry runs, row errors, apply manifests,
+and approval-gated rollback bound to the previewed record list. ERPNext import and
+rollback adapters, relational validation, persistent audit, and upload/error-report
+UI are still required. Adapters must apply and check manifests in one transaction.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
