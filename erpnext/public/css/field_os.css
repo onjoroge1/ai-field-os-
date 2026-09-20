@@ -17,7 +17,7 @@
 .field-os__rail button { border: 0; background: transparent; color: #bad0c8; border-radius: 10px; padding: 11px 12px; text-align: left; font-weight: 600; }
 .field-os__rail button span { display: inline-block; width: 28px; }
 .field-os__rail button:hover, .field-os__rail button.is-active { color: white; background: rgba(255,255,255,.1); }
-.field-os__main { padding: 36px clamp(22px, 4vw, 64px) 64px; max-width: 1480px; width: 100%; }
+.field-os__main { padding: 36px clamp(22px, 4vw, 64px) 64px; max-width: 1480px; width: 100%; min-width: 0; }
 .field-os__topbar { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-bottom: 34px; }
 .field-os__topbar h1, .field-os__section-title h2 { margin: 2px 0 0; color: var(--field-ink); letter-spacing: -.03em; }
 .field-os__topbar h1 { font-size: 34px; }
