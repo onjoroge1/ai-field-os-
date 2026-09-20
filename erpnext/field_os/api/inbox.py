@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict
 
 import frappe
+from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.communications.frappe_repository import FrappeCommunicationRepository
@@ -49,16 +50,16 @@ def queue(
 		parsed_states = tuple(ThreadState(value.strip()) for value in states.split(",") if value.strip())
 		parsed_channel = CommunicationChannel(channel) if channel else None
 	except ValueError:
-		frappe.throw("Invalid Inbox filter", frappe.ValidationError)
+		frappe.throw(_("Invalid Inbox filter"), frappe.ValidationError)
 	if not parsed_states:
-		frappe.throw("Choose at least one Inbox state", frappe.ValidationError)
+		frappe.throw(_("Choose at least one Inbox state"), frappe.ValidationError)
 	assigned_to = None
 	if assignment == "mine":
 		assigned_to = context.user
 	elif assignment == "unassigned":
 		assigned_to = ""
 	elif assignment != "all":
-		frappe.throw("Invalid assignment filter", frappe.ValidationError)
+		frappe.throw(_("Invalid assignment filter"), frappe.ValidationError)
 	return asdict(
 		_service().queue(
 			context,
@@ -88,7 +89,7 @@ def set_state(company: str, thread_id: str, state: str, idempotency_key: str) ->
 	try:
 		parsed_state = ThreadState(state)
 	except ValueError:
-		frappe.throw("Invalid thread state", frappe.ValidationError)
+		frappe.throw(_("Invalid thread state"), frappe.ValidationError)
 	return asdict(_service().set_state(context, thread_id, parsed_state, idempotency_key, _ACTION_ENGINE))
 
 

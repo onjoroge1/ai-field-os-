@@ -1,9 +1,13 @@
+from dataclasses import replace
 from decimal import Decimal
 from unittest import TestCase
+from unittest.mock import Mock
 
 from erpnext.field_os.actions.engine import ActionEngine
+from erpnext.field_os.actions.models import RiskClass
 from erpnext.field_os.estimates.models import Estimate, EstimateLine
 from erpnext.field_os.estimates.service import EstimateService
+from erpnext.field_os.security.authorization import CapabilityDenied
 from erpnext.field_os.security.context import TenantContext
 from erpnext.field_os.security.roles import FieldOSRole
 
@@ -46,6 +50,39 @@ class Repo:
 
 
 class TestEstimates(TestCase):
+	def setUp(self):
+		self.repo, self.store = Repo(), Store()
+		self.ctx = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))
+		self.service = EstimateService(self.repo, self.store)
+		self.proposal, _ = self.service.preview_send(self.ctx, "Q1")
+		self.repo.set_status = Mock(wraps=self.repo.set_status)
+
+	def test_commit_rechecks_current_permission(self):
+		revoked = replace(self.ctx, roles=frozenset({FieldOSRole.TECHNICIAN}))
+		with self.assertRaises(CapabilityDenied):
+			self.service.commit_send(revoked, self.proposal.id, "send", ActionEngine())
+		self.repo.set_status.assert_not_called()
+
+	def test_commit_rejects_substituted_approval(self):
+		for change in ({"actor": "other"}, {"company": "OTHER"}, {"tool": "other"}, {"risk": RiskClass.LOW}):
+			with self.subTest(change=change):
+				self.store.x[(self.ctx.company, self.proposal.id)] = replace(self.proposal, **change)
+				with self.assertRaises(ValueError):
+					self.service.commit_send(self.ctx, self.proposal.id, "send", ActionEngine())
+		self.repo.set_status.assert_not_called()
+
+	def test_commit_rejects_changed_estimate(self):
+		self.repo.e = replace(self.repo.e, version="changed")
+		with self.assertRaises(ValueError):
+			self.service.commit_send(self.ctx, self.proposal.id, "send", ActionEngine())
+		self.repo.set_status.assert_not_called()
+
+	def test_retry_returns_receipt_without_sending_again(self):
+		engine = ActionEngine()
+		first = self.service.commit_send(self.ctx, self.proposal.id, "send", engine)
+		self.assertEqual(first, self.service.commit_send(self.ctx, self.proposal.id, "send", engine))
+		self.repo.set_status.assert_called_once()
+
 	def test_approval_and_parts_shortage(self):
 		r, s = Repo(), Store()
 		ctx = TenantContext("CO", "m", frozenset({FieldOSRole.MANAGER}))

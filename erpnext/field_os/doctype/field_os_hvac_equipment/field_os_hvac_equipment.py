@@ -1,16 +1,20 @@
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
 class FieldOSHVACEquipment(Document):
 	def validate(self):
-		if self.parent_equipment == self.name:
-			frappe.throw("Equipment cannot be its own parent")
-		if self.parent_equipment:
+		parent_id = self.parent_equipment
+		seen = {self.name}
+		while parent_id:
+			if parent_id in seen:
+				frappe.throw(_("Equipment hierarchy cannot contain a cycle"))
+			seen.add(parent_id)
 			parent = frappe.db.get_value(
 				"Field OS HVAC Equipment",
-				self.parent_equipment,
-				["company", "customer", "site"],
+				parent_id,
+				["company", "customer", "site", "parent_equipment"],
 				as_dict=True,
 			)
 			if not parent or (parent.company, parent.customer, parent.site) != (
@@ -18,4 +22,5 @@ class FieldOSHVACEquipment(Document):
 				self.customer,
 				self.site,
 			):
-				frappe.throw("Parent equipment must belong to the same tenant, customer, and site")
+				frappe.throw(_("Parent equipment must belong to the same tenant, customer, and site"))
+			parent_id = parent.parent_equipment

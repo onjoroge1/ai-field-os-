@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict
 
 import frappe
+from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.adapter.erpnext import ERPNextAdapter
@@ -37,7 +38,7 @@ def ask(
 	try:
 		retention_policy = ConversationRetention(retention)
 	except ValueError:
-		frappe.throw("Invalid conversation retention policy", frappe.ValidationError)
+		frappe.throw(_("Invalid conversation retention policy"), frappe.ValidationError)
 	response = _service().ask(
 		context,
 		message,

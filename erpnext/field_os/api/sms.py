@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict
 
 import frappe
+from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
@@ -75,14 +76,14 @@ def create_draft(
 	if integration.company != context.company:
 		raise frappe.PermissionError("SMS integration belongs to another tenant")
 	if bool(body) == bool(template_id):
-		frappe.throw("Provide either body or template_id", frappe.ValidationError)
+		frappe.throw(_("Provide either body or template_id"), frappe.ValidationError)
 	if template_id:
 		template = load_sms_template(context.company, template_id)
 		payload = json.loads(variables or "{}")
 		if not isinstance(payload, dict) or any(
 			not isinstance(value, str | int | float) for value in payload.values()
 		):
-			frappe.throw("SMS template variables must be a simple JSON object", frappe.ValidationError)
+			frappe.throw(_("SMS template variables must be a simple JSON object"), frappe.ValidationError)
 		body = render_sms_template(template, {key: str(value) for key, value in payload.items()})
 		transactional = bool(template.transactional)
 	else:
