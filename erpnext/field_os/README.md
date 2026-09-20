@@ -73,6 +73,12 @@ Agreement service logic derives due and overdue visits and upcoming renewal wind
 Live persistence, recurring job creation, renewal actions, and dashboard UI remain
 to be implemented.
 
+## Completion to invoice
+Completion service logic validates evidence and billables before an approved
+financial action delegates invoice creation to a repository. Live work-completion
+and Sales Invoice adapters, delivery/follow-up, and technician/billing UI are still
+required. Repository writes must enforce versions atomically.
+
 ## Isolated unit checks
 
 Run `python erpnext/field_os/tests/run_unit.py` from the repository root. Without
