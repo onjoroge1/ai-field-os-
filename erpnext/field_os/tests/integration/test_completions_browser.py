@@ -52,6 +52,8 @@ def run():
 				)
 				for key in ("safety_checks", "operational_test", "work_area_clean"):
 					browser("check", f'.modal.show input[data-fieldname="{key}"]')
+				browser("click", '.modal.show .grid-body [data-fieldname="rate"]')
+				browser("fill", '.modal.show .grid-body input[data-fieldname="rate"]', "20")
 				browser("click", '.modal.show .grid-body [data-fieldname="warehouse"]')
 				browser("select", '.modal.show .grid-body select[data-fieldname="warehouse"]', "Stores - FIA")
 				photo = bench / "logs/completions-photo.png"
@@ -106,7 +108,7 @@ def run():
 					"document.querySelector('.modal.show .btn-modal-primary')?.textContent.includes('Approve and post')",
 				)
 				dialog()
-				assert "USD 27.50" in browser("get", "text", ".modal.show")
+				assert "USD 22.00" in browser("get", "text", ".modal.show")
 				browser("click", ".modal.show .btn-modal-primary")
 				browser("wait", '[data-work-notice="Invoice"]')
 				browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
@@ -146,7 +148,7 @@ def run():
 				message = message_from_bytes(delivered.get(timeout=10), policy=policy.default)
 				assert message["To"] == "customer@example.invalid"
 				body = message.get_body(preferencelist=("html",)).get_content()
-				assert "FieldOS Filter" in body and "USD 27.50" in body
+				assert "FieldOS Filter" in body and "USD 22.00" in body
 				browser("wait", "--fn", "!document.querySelector('.modal-backdrop')")
 				browser("click", "[data-work-reload]")
 				browser(

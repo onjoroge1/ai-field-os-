@@ -14,6 +14,7 @@ from erpnext.field_os.actions.validation import require_proposal
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
 from erpnext.field_os.completions import repository as repo
 from erpnext.field_os.security.authorization import authorize
+from erpnext.stock.get_item_details import get_item_details
 
 
 def retry_key(context, tool, key):
@@ -51,10 +52,16 @@ def invoice_document(doc, *, lock=False):
 	return frappe.get_doc("Sales Invoice", name)
 
 
+def payable(invoice):
+	return invoice.grand_total if invoice.is_rounded_total_disabled() else invoice.rounded_total
+
+
 def amounts(invoice):
 	return {
 		"currency": invoice.currency,
-		"total": invoice.grand_total,
+		"total": payable(invoice),
+		"before_rounding": invoice.grand_total,
+		"rounding": invoice.rounding_adjustment,
 		"taxes": invoice.total_taxes_and_charges,
 		"items": [
 			{
@@ -115,7 +122,28 @@ def preview(context, name, due, tax_template):
 	for row in frappe.parse_json(doc.billables_json):
 		stocked = frappe.db.get_value("Item", row["item_code"], "is_stock_item")
 		invoice.update_stock = invoice.update_stock or stocked
-		invoice.append("items", {**row, "cost_center": company.cost_center})
+		details = get_item_details(
+			{
+				**invoice.as_dict(),
+				**row,
+				"doctype": "Sales Invoice",
+				"price_list": price_list,
+			},
+			invoice,
+		)
+		# Resolve the same company/item accounting defaults as the native item picker.
+		# A new child row can initialize account fields to an empty string, which
+		# native update-if-missing validation does not consistently replace.
+		invoice.append(
+			"items",
+			{
+				**details,
+				**row,
+				"income_account": details.get("income_account"),
+				"expense_account": details.get("expense_account"),
+				"cost_center": details.get("cost_center") or company.cost_center,
+			},
+		)
 	invoice.set("taxes", [])
 	invoice.taxes_and_charges = tax_template or None
 	if tax_template:

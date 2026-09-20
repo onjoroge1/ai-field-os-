@@ -48,7 +48,7 @@ def preview(context, name, recipient, integration_id, kind):
 		"integration": integration_id,
 		"kind": kind,
 		"outstanding": invoice.outstanding_amount,
-		"total": invoice.grand_total,
+		"total": billing.payable(invoice),
 		"currency": invoice.currency,
 		"due_date": str(invoice.due_date),
 	}
@@ -77,7 +77,7 @@ def approve(context, proposal_id, key):
 		return repo.detail(context, doc.name)
 	invoice = billing.invoice_document(doc, lock=True)
 	mailbox = validate(context, doc, invoice, args["recipient"], args["integration"], args["kind"])
-	if (invoice.name, str(invoice.modified), invoice.outstanding_amount, invoice.grand_total) != (
+	if (invoice.name, str(invoice.modified), invoice.outstanding_amount, billing.payable(invoice)) != (
 		args["invoice"],
 		args["invoice_modified"],
 		args["outstanding"],
@@ -89,7 +89,7 @@ def approve(context, proposal_id, key):
 		f"<tr><td>{escape(strip_html(r.description or r.item_code))}</td><td>{r.qty:g}</td><td>{r.amount:,.2f}</td></tr>"
 		for r in invoice.items
 	)
-	body = f"<h1>{escape(args['kind'])} {escape(invoice.name)}</h1><p>{escape(doc.company)} · {escape(invoice.customer_name)}</p><p>Service visit {escape(doc.visit)}</p><table><thead><tr><th>Work or part</th><th>Quantity</th><th>Amount</th></tr></thead><tbody>{rows}</tbody></table><p>Tax: {escape(invoice.currency)} {invoice.total_taxes_and_charges:,.2f}</p><p>Total: {escape(invoice.currency)} {invoice.grand_total:,.2f}</p><p>Outstanding: {escape(invoice.currency)} {invoice.outstanding_amount:,.2f}</p><p>Due: {invoice.due_date}</p><p>Reply to this email with questions or to arrange payment.</p>"
+	body = f"<h1>{escape(args['kind'])} {escape(invoice.name)}</h1><p>{escape(doc.company)} · {escape(invoice.customer_name)}</p><p>Service visit {escape(doc.visit)}</p><table><thead><tr><th>Work or part</th><th>Quantity</th><th>Amount</th></tr></thead><tbody>{rows}</tbody></table><p>Tax: {escape(invoice.currency)} {invoice.total_taxes_and_charges:,.2f}</p><p>Total: {escape(invoice.currency)} {billing.payable(invoice):,.2f} (rounding: {invoice.rounding_adjustment:,.2f})</p><p>Outstanding: {escape(invoice.currency)} {invoice.outstanding_amount:,.2f}</p><p>Due: {invoice.due_date}</p><p>Reply to this email with questions or to arrange payment.</p>"
 	thread = frappe.get_doc(
 		{
 			"doctype": "Field OS Communication Thread",

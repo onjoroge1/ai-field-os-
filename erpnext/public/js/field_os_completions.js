@@ -381,9 +381,13 @@ frappe.field_os.Completions = class {
 					__("Approve invoice"),
 					`${this.lines(preview.items, preview.currency)}<p>${__("Taxes")}: ${e(
 						this.money(preview.taxes, preview.currency)
-					)}</p><h3>${__("Total")}: ${e(this.money(preview.total, preview.currency))}</h3><p>${__(
-						"Due"
-					)}: ${e(preview.due_date)}</p><p>${__(
+					)}<br>${__("Before rounding")}: ${e(
+						this.money(preview.before_rounding, preview.currency)
+					)}<br>${__("Rounding")}: ${e(this.money(preview.rounding, preview.currency))}</p><h3>${__(
+						"Total"
+					)}: ${e(this.money(preview.total, preview.currency))}</h3><p>${__("Due")}: ${e(
+						preview.due_date
+					)}</p><p>${__(
 						"Approval posts the invoice to accounting and issues its stocked parts from their warehouses."
 					)}</p>`,
 					"approve_invoice",
