@@ -36,7 +36,13 @@ class EquipmentService:
 	def history(self, context: TenantContext, equipment_id: str) -> EquipmentHistory:
 		authorize(context, "read")
 		equipment = self.repository.get_equipment(context.company, equipment_id)
+		if equipment.company != context.company or equipment.id != equipment_id:
+			raise ValueError("Equipment is outside this tenant")
 		items = self.repository.list_equipment(context.company, equipment.customer_id)
+		if any(
+			item.company != context.company or item.customer_id != equipment.customer_id for item in items
+		):
+			raise ValueError("Equipment hierarchy is outside this tenant or customer")
 		by_id = {item.id: item for item in items}
 		ancestors, seen, parent_id = [], {equipment.id}, equipment.parent_id
 		while parent_id:
@@ -44,15 +50,21 @@ class EquipmentService:
 				raise ValueError("Equipment hierarchy contains a cycle")
 			seen.add(parent_id)
 			parent = by_id.get(parent_id)
-			if not parent:
-				break
+			if not parent or parent.site_id != equipment.site_id:
+				raise ValueError("Equipment parent is missing or belongs to another site")
 			ancestors.append(parent)
 			parent_id = parent.parent_id
+		children = tuple(x for x in items if x.parent_id == equipment.id)
+		if any(child.site_id != equipment.site_id for child in children):
+			raise ValueError("Equipment child belongs to another site")
+		notes = tuple(self.repository.list_notes(context.company, equipment.id))
+		if any(note.company != context.company or note.equipment_id != equipment.id for note in notes):
+			raise ValueError("Equipment notes are outside this equipment or tenant")
 		return EquipmentHistory(
 			equipment,
 			tuple(ancestors),
-			tuple(x for x in items if x.parent_id == equipment.id),
-			tuple(self.repository.list_notes(context.company, equipment.id)),
+			children,
+			notes,
 		)
 
 	def add_note(
@@ -66,7 +78,9 @@ class EquipmentService:
 		authorize(context, "field_update")
 		if not note.strip() or len(photo_urls) > 20:
 			raise ValueError("A note and no more than 20 photos are required")
-		self.repository.get_equipment(context.company, equipment_id)
+		equipment = self.repository.get_equipment(context.company, equipment_id)
+		if equipment.company != context.company or equipment.id != equipment_id:
+			raise ValueError("Equipment is outside this tenant")
 		return self.repository.create_note(
 			context.company, equipment_id, context.user, note.strip(), datetime.now(UTC), visit_id, photo_urls
 		)

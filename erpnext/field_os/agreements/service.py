@@ -20,6 +20,22 @@ class Agreement:
 	interval_months: int
 	renewal_notice_days: int = 30
 
+	def __post_init__(self):
+		if self.ends_on <= self.starts_on:
+			raise ValueError("Agreement end date must follow start date")
+		if (
+			not isinstance(self.interval_months, int)
+			or isinstance(self.interval_months, bool)
+			or not 1 <= self.interval_months <= 60
+		):
+			raise ValueError("Interval must be an integer from 1 to 60 months")
+		if (
+			not isinstance(self.renewal_notice_days, int)
+			or isinstance(self.renewal_notice_days, bool)
+			or self.renewal_notice_days < 0
+		):
+			raise ValueError("Renewal notice must be a nonnegative number of days")
+
 
 @dataclass(frozen=True, slots=True)
 class DueVisit:
@@ -52,8 +68,17 @@ class AgreementService:
 		active = [x for x in self.repo.list(context.company) if x.status == "Active"]
 		due = []
 		for item in active:
+			if item.company != context.company:
+				raise ValueError("Agreement is outside this tenant")
 			when = add_months(
-				max(self.repo.completed(context.company, item.id), default=item.starts_on),
+				max(
+					(
+						day
+						for day in self.repo.completed(context.company, item.id)
+						if item.starts_on <= day <= today
+					),
+					default=item.starts_on,
+				),
 				item.interval_months,
 			)
 			if when <= item.ends_on and when <= add_months(today, 1):
@@ -62,5 +87,5 @@ class AgreementService:
 			"active": len(active),
 			"due": tuple(x for x in due if x.state == "Due"),
 			"overdue": tuple(x for x in due if x.state == "Overdue"),
-			"renewals": tuple(x for x in active if (x.ends_on - today).days <= x.renewal_notice_days),
+			"renewals": tuple(x for x in active if 0 <= (x.ends_on - today).days <= x.renewal_notice_days),
 		}
