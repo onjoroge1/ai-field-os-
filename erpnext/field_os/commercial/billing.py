@@ -162,10 +162,20 @@ def sync(company):
 		if (
 			selected.customer != doc.stripe_customer
 			or bool(selected.livemode) != live
-			or selected.metadata.get("field_os") != digest(company, "tenant")
+			or (
+				selected.metadata.to_dict() if hasattr(selected.metadata, "to_dict") else selected.metadata
+			).get("field_os")
+			!= digest(company, "tenant")
 		):
 			frappe.throw(_("Subscription does not match the Field OS company binding"))
-		doc.update(subscription_values(selected, prices, native.state(doc), datetime.now(UTC)))
+		doc.update(
+			subscription_values(
+				selected.to_dict() if hasattr(selected, "to_dict") else selected,
+				prices,
+				native.state(doc),
+				datetime.now(UTC),
+			)
+		)
 		doc.billing_synced_at = now_datetime()
 		doc.checkout_session = None
 		doc.save(ignore_permissions=True)
@@ -222,7 +232,7 @@ def receive(raw, signature):
 		"invoice.payment_action_required",
 	}:
 		return {"accepted": True, "ignored": True}
-	customer = event.data.object.get("customer")
+	customer = event.data.object.to_dict().get("customer")
 	company = (
 		frappe.db.get_value(native.SUBSCRIPTION, {"stripe_customer": customer}, "company")
 		if customer
