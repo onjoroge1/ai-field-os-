@@ -340,6 +340,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Subscription Invoice": "erpnext.field_os.security.documents.company_query",
+	"Field OS Billing Event": "erpnext.field_os.security.documents.company_query",
 	"Field OS Usage": "erpnext.field_os.security.documents.company_query",
 	"Field OS Subscription": "erpnext.field_os.security.documents.company_query",
 	"Field OS Demo Tenant": "erpnext.field_os.security.documents.company_query",
@@ -361,6 +363,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Subscription Invoice": "erpnext.field_os.commercial.native.read_permission",
+	"Field OS Billing Event": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Usage": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Subscription": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Demo Tenant": "erpnext.field_os.security.documents.demo_permission",
@@ -553,6 +557,7 @@ scheduler_events = {
 		"45 0 * * *": [],
 	},
 	"hourly": [
+		"erpnext.field_os.commercial.billing.reconcile",
 		"erpnext.projects.doctype.project.project.hourly_reminder",
 	],
 	"hourly_long": [],

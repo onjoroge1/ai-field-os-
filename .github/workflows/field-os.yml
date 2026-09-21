@@ -157,6 +157,10 @@ jobs:
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_commercial_live.run
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_onboarding_live.prepare_onboarding
           env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_commercial_browser.py
+      - name: Verify subscription billing persistence and signed events
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_billing_live.run
       - name: Preserve commercial browser screenshots
         if: always()
         uses: actions/upload-artifact@v4

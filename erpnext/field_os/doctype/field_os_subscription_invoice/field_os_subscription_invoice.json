@@ -1,0 +1,82 @@
+{
+ "doctype": "DocType",
+ "name": "Field OS Subscription Invoice",
+ "module": "Field OS",
+ "engine": "InnoDB",
+ "autoname": "field:provider_id",
+ "field_order": [
+  "provider_id",
+  "company",
+  "status",
+  "currency",
+  "amount_due",
+  "amount_paid",
+  "hosted_url",
+  "provider_created"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider_id",
+   "label": "Provider Id",
+   "fieldtype": "Data",
+   "unique": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "label": "Status",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "currency",
+   "label": "Currency",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "amount_due",
+   "label": "Amount Due",
+   "fieldtype": "Int"
+  },
+  {
+   "fieldname": "amount_paid",
+   "label": "Amount Paid",
+   "fieldtype": "Int"
+  },
+  {
+   "fieldname": "hosted_url",
+   "label": "Hosted Url",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "provider_created",
+   "label": "Provider Created",
+   "fieldtype": "Int"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  }
+ ],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "modified": "2026-09-21 00:00:00",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "actions": [],
+ "links": [],
+ "states": []
+}

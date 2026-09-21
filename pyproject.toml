@@ -14,6 +14,9 @@ dependencies = [
     "rapidfuzz~=3.14.3",
     "holidays~=0.87",
 
+    # Field OS subscription billing (hosted Checkout and Portal)
+    "stripe~=15.6.1",
+
     # integration dependencies
     "googlemaps~=4.10.0",
     "plaid-python~=7.2.1",

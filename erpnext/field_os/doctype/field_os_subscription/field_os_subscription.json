@@ -14,7 +14,11 @@
   "stripe_customer",
   "stripe_subscription",
   "billing_period_end",
-  "billing_event_created"
+  "billing_event_created",
+  "checkout_session",
+  "checkout_plan",
+  "checkout_generation",
+  "billing_synced_at"
  ],
  "fields": [
   {
@@ -58,12 +62,14 @@
   {
    "fieldname": "stripe_customer",
    "label": "Stripe Customer",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "unique": 1
   },
   {
    "fieldname": "stripe_subscription",
    "label": "Stripe Subscription",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "unique": 1
   },
   {
    "fieldname": "billing_period_end",
@@ -75,6 +81,27 @@
    "label": "Billing Event Created",
    "fieldtype": "Int",
    "default": 0
+  },
+  {
+   "fieldname": "checkout_session",
+   "label": "Checkout Session",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "checkout_plan",
+   "label": "Checkout Plan",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "checkout_generation",
+   "label": "Checkout Generation",
+   "fieldtype": "Int",
+   "default": 0
+  },
+  {
+   "fieldname": "billing_synced_at",
+   "label": "Billing Synced At",
+   "fieldtype": "Datetime"
   }
  ],
  "permissions": [
