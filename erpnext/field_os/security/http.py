@@ -65,6 +65,9 @@ def before_request():
 
 
 def after_request(request, response):
+	from erpnext.field_os.observability.service import request_finished
+
+	request_finished(response)
 	method = endpoint(request, getattr(frappe, "form_dict", {}) or {})
 	if relevant(request, method):
 		response.headers["X-Content-Type-Options"] = "nosniff"

@@ -24,6 +24,9 @@ class ModelMessage:
 class ModelReply:
 	answer: str
 	tool_call: dict[str, Any] | None = None
+	model: str | None = None
+	input_tokens: int | None = None
+	output_tokens: int | None = None
 
 
 class ModelProvider(Protocol):

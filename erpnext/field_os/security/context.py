@@ -58,4 +58,6 @@ def resolve_tenant_context(company: str, user: str | None = None) -> TenantConte
 	if not system_manager and not roles:
 		raise TenantAccessDenied("User has no AI Field OS role")
 
+	if getattr(frappe, "local", None) is not None:
+		frappe.local.field_os_company = company
 	return TenantContext(company=company, user=user, roles=roles, system_manager=system_manager)
