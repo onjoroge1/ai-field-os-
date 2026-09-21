@@ -180,6 +180,7 @@ class FieldOSApp {
 			agreements: "▦",
 			work: "✓",
 			setup: "⚙",
+			commercial: "▤",
 			imports: "⇧",
 			demo: "◇",
 		};

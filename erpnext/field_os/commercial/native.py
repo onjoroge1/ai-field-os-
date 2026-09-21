@@ -193,5 +193,5 @@ def read_permission(doc, ptype=None, user=None, **kwargs):
 		context = resolve_tenant_context(doc.company, user)
 		authorize(context, "admin")
 		return ptype in (None, "read", "select")
-	except PermissionError:
+	except (PermissionError, frappe.PermissionError):
 		return False

@@ -41,7 +41,7 @@ def settings():
 def client():
 	from stripe import RequestsClient, StripeClient
 
-	key, _, _ = settings()
+	key, prices, live = settings()
 	return StripeClient(
 		key, stripe_version=API_VERSION, max_network_retries=2, http_client=RequestsClient(timeout=15)
 	)
@@ -77,7 +77,7 @@ def digest(company, purpose):
 
 def checkout(company, plan):
 	owner(company)
-	_, prices, _ = settings()
+	key, prices, live = settings()
 	if plan not in prices:
 		frappe.throw(_("Choose a configured Field OS plan"))
 	url = return_url()
@@ -149,7 +149,7 @@ def sync(company):
 	doc = native.subscription(company, lock=True)
 	if not doc.stripe_customer:
 		return
-	_, prices, live = settings()
+	key, prices, live = settings()
 	api = client().v1
 	remote = api.subscriptions.list({"customer": doc.stripe_customer, "status": "all", "limit": 100})
 	eligible = [s for s in remote.data if s.status not in {"canceled", "incomplete_expired"}]
@@ -209,7 +209,7 @@ def receive(raw, signature):
 		event = stripe.Webhook.construct_event(raw, signature, secret, tolerance=300)
 	except (ValueError, stripe.SignatureVerificationError):
 		frappe.throw(_("Invalid billing event signature"), frappe.PermissionError)
-	_, _, live = settings()
+	key, prices, live = settings()
 	if bool(event.livemode) != live:
 		frappe.throw(_("Billing event environment mismatch"), frappe.PermissionError)
 	if event.type not in {
