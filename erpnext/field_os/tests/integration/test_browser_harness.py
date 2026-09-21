@@ -70,6 +70,7 @@ def login(user="fieldos-manager@example.invalid"):
 	)
 	browser("open", BASE + "/desk/field-os")
 	browser("wait", '[data-view="customers"]')
+	browser("wait", "--fn", "!frappe.ajax_count && !document.querySelector('.field-os__loading')")
 
 
 def customer():
