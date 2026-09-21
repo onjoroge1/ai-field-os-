@@ -88,9 +88,11 @@ setup_wizard_stages = "erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"
 after_install = [
 	"erpnext.setup.install.after_install",
 	"erpnext.field_os.install.ensure_native_read_permissions",
+	"erpnext.field_os.support.service.ensure_role",
 ]
 after_migrate = [
 	"erpnext.field_os.install.ensure_native_read_permissions",
+	"erpnext.field_os.support.service.ensure_role",
 	"erpnext.field_os.commercial.native.migrate_subscriptions",
 ]
 
@@ -340,6 +342,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Audit Event": "erpnext.field_os.security.documents.company_query",
+	"Field OS Support Grant": "erpnext.field_os.security.documents.company_query",
 	"Field OS Subscription Invoice": "erpnext.field_os.security.documents.company_query",
 	"Field OS Billing Event": "erpnext.field_os.security.documents.company_query",
 	"Field OS Usage": "erpnext.field_os.security.documents.company_query",
@@ -363,6 +367,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Audit Event": "erpnext.field_os.commercial.native.read_permission",
+	"Field OS Support Grant": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Subscription Invoice": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Billing Event": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Usage": "erpnext.field_os.commercial.native.read_permission",

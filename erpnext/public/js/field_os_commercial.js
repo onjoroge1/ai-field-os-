@@ -39,6 +39,7 @@ frappe.field_os.Commercial = class {
 					<div data-billing-actions></div>
 				</section>`);
 			await this.billing();
+			await this.support();
 		} catch (error) {
 			app.renderError(__("Plan details could not be loaded."));
 		}
@@ -109,5 +110,69 @@ frappe.field_os.Commercial = class {
 			args: { company: this.app.company, ...args },
 		});
 		window.location.assign(data.url);
+	}
+
+	async support() {
+		const call = async (method, args = {}) =>
+			(
+				await frappe.call({
+					method: `erpnext.field_os.api.support.${method}`,
+					args: { company: this.app.company, ...args },
+				})
+			).message;
+		const rows = await call("grants");
+		if (this.app.activeView !== "commercial") return;
+		const e = frappe.utils.escape_html;
+		const area = $(`<section data-owner-support><h3>${__("Support access")}</h3><p>${__(
+			"Grant up to one hour of read-only diagnostics. Revoke access at any time. This does not allow support to act as you."
+		)}</p><button class="btn btn-default" data-new-grant>${__("Grant support access")}</button>
+			${rows
+				.map(
+					(row) =>
+						`<p>${e(row.support_user)} · ${e(String(row.expires_at))} · ${
+							row.revoked
+								? __("Revoked")
+								: `<button class="btn btn-xs btn-default" data-revoke="${e(row.name)}">${__(
+										"Revoke"
+								  )}</button>`
+						}</p>`
+				)
+				.join("")}</section>`);
+		this.app.root.find("[data-plan-summary]").append(area);
+		area.find("[data-new-grant]").on("click", () =>
+			frappe.prompt(
+				[
+					{
+						fieldname: "support_user",
+						fieldtype: "Data",
+						label: __("Support account email"),
+						reqd: 1,
+					},
+					{
+						fieldname: "reason",
+						fieldtype: "Small Text",
+						label: __("Support request (no credentials)"),
+						reqd: 1,
+					},
+					{
+						fieldname: "minutes",
+						fieldtype: "Int",
+						label: __("Minutes of access (5–60)"),
+						default: 30,
+						reqd: 1,
+					},
+				],
+				async (values) => {
+					await call("grant", values);
+					await this.open();
+				},
+				__("Approve temporary support access"),
+				__("Grant read access")
+			)
+		);
+		area.find("[data-revoke]").on("click", async (event) => {
+			await call("revoke", { grant_id: event.currentTarget.dataset.revoke });
+			await this.open();
+		});
 	}
 };
