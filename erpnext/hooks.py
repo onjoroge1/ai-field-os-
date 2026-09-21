@@ -838,3 +838,7 @@ repost_allowed_doctypes = [
 	"Payment Entry",
 	"Purchase Receipt",
 ]
+
+# Field OS request budgets and response hardening. Native session/CSRF remain authoritative.
+before_request = ["erpnext.field_os.security.http.before_request"]
+after_request = ["erpnext.field_os.security.http.after_request"]

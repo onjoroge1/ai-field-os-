@@ -139,11 +139,11 @@ def poll_enabled_mailboxes() -> None:
 				update_modified=False,
 			)
 		except Exception:
-			error = frappe.get_traceback(with_context=False)
+			error = "provider_poll_failed"
 			frappe.db.set_value(
 				"Field OS Email Integration",
 				name,
-				{"last_error": error[-2000:]},
+				{"last_error": error},
 				update_modified=False,
 			)
-			frappe.log_error(title=f"Field OS email poll failed: {name}")
+			frappe.log_error(title=f"Field OS email poll failed: {name}", message="provider_poll_failed")

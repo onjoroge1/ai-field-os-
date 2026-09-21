@@ -14,7 +14,9 @@ import frappe
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.actions.models import ActionProposal, ExecutionReceipt, RiskClass
+from erpnext.field_os.actions.validation import require_proposal
 from erpnext.field_os.ai.conversation import ProposalStore
+from erpnext.field_os.communications.approval import message_digest
 from erpnext.field_os.communications.models import (
 	CommunicationAttachment,
 	CommunicationChannel,
@@ -318,7 +320,7 @@ class EmailService:
 		proposal = ActionProposal(
 			str(uuid4()),
 			"send_email",
-			{"message_id": message.id},
+			{"message_id": message.id, "message_digest": message_digest(message)},
 			RiskClass.EXTERNAL,
 			context.company,
 			context.user,
@@ -345,13 +347,22 @@ class EmailService:
 		if not self.proposals:
 			raise ValueError("Proposal storage is not configured")
 		proposal = self.proposals.load(context.company, proposal_id)
-		if proposal is None or proposal.tool != "send_email":
-			raise ValueError("Email proposal is missing or expired")
+		proposal = require_proposal(proposal, context, tool="send_email", risk=RiskClass.EXTERNAL)
 		message = self.repository.get_message(context.company, str(proposal.arguments["message_id"]))
 		if message is None or message.delivery_state != DeliveryState.PENDING_APPROVAL:
 			raise ValueError("Email is no longer pending approval")
+		if proposal.arguments.get("message_digest") != message_digest(message):
+			raise ValueError("Message changed after preview; generate a new approval")
+		if message.sender.address != from_address:
+			raise ValueError("Sender changed after preview; generate a new approval")
 		if message.provider != integration_id:
 			raise PermissionError("Email provider integration does not match the approved draft")
+
+		for recipient in message.recipients:
+			if not self.communications.can_send(
+				context.company, recipient.address, CommunicationChannel.EMAIL, transactional=True
+			):
+				raise PermissionError("Email consent changed; sending is blocked")
 
 		def execute():
 			queued = self.repository.save_message(
@@ -372,7 +383,11 @@ class EmailService:
 				)
 			except Exception as exc:
 				self.repository.save_message(
-					replace(queued, delivery_state=DeliveryState.FAILED, error=str(exc))
+					replace(
+						queued,
+						delivery_state=DeliveryState.FAILED,
+						error=type(exc).__name__ + ": delivery failed",
+					)
 				)
 				raise
 			sent = self.repository.save_message(

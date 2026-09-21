@@ -165,6 +165,27 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_support_live.run
+      - name: Verify atomic request budgets and body limits
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          bench --site fieldos.test execute erpnext.field_os.tests.integration.test_http_live.run
+      - name: Verify browser response hardening and native CSRF
+        env:
+          FIELD_OS_TEST_PASSWORD: fieldos-browser-acceptance
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_security_browser.py
+      - name: Audit installed runtime dependencies
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          env/bin/pip install pip-audit
+          env/bin/pip-audit --format json --output logs/dependency-audit.json
+      - name: Preserve dependency audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit
+          path: ${{ runner.temp }}/fieldos-bench/logs/dependency-audit.json
       - name: Preserve commercial browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
