@@ -9,6 +9,7 @@ import frappe
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.dispatch.frappe_repository import FrappeDispatchRepository
 from erpnext.field_os.dispatch.service import DispatchService
 from erpnext.field_os.security.context import resolve_tenant_context
@@ -29,6 +30,7 @@ def board(company: str, day: str | None = None) -> dict[str, object]:
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_change(
 	company: str,
 	job_id: str,
@@ -50,6 +52,7 @@ def preview_change(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def commit_change(company: str, proposal_id: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	receipt = _service().commit_change(context, proposal_id, idempotency_key, _ACTION_ENGINE)

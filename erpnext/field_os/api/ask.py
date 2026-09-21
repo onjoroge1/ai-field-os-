@@ -12,6 +12,7 @@ from erpnext.field_os.ai.conversation import AskOperationsService, ConversationR
 from erpnext.field_os.ai.frappe_provider import configured_provider
 from erpnext.field_os.ai.frappe_store import FrappeCacheConversationStore, FrappeCacheProposalStore
 from erpnext.field_os.ai.operator_catalog import build_operator_registry
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.equipment.frappe_repository import CompanyCustomerAdapter, FrappeEquipmentRepository
 from erpnext.field_os.estimates.ai import register as register_estimates
 from erpnext.field_os.security.context import resolve_tenant_context
@@ -23,14 +24,15 @@ def _service(company: str) -> AskOperationsService:
 	registry = build_operator_registry(CompanyCustomerAdapter(company), FrappeEquipmentRepository())
 	register_estimates(registry)
 	return AskOperationsService(
-		configured_provider(),
+		configured_provider(company),
 		registry,
 		FrappeCacheConversationStore(),
 		FrappeCacheProposalStore(),
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
+@entitled
 def ask(
 	company: str,
 	message: str,
@@ -52,6 +54,7 @@ def ask(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def clear_conversation(company: str, conversation_id: str) -> dict[str, bool]:
 	context = resolve_tenant_context(company)
 	_service(context.company).clear(context, conversation_id)
@@ -59,6 +62,7 @@ def clear_conversation(company: str, conversation_id: str) -> dict[str, bool]:
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve(company: str, proposal_id: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	receipt = _service(context.company).approve(context, proposal_id, idempotency_key, _ACTION_ENGINE)
@@ -66,6 +70,7 @@ def approve(company: str, proposal_id: str, idempotency_key: str) -> dict[str, o
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def reject(company: str, proposal_id: str) -> dict[str, bool]:
 	context = resolve_tenant_context(company)
 	_service(context.company).reject(context, proposal_id)

@@ -1,0 +1,76 @@
+{
+ "doctype": "DocType",
+ "name": "Field OS Usage",
+ "module": "Field OS",
+ "engine": "InnoDB",
+ "autoname": "field:usage_key",
+ "field_order": [
+  "usage_key",
+  "company",
+  "metric",
+  "period",
+  "quantity",
+  "actor"
+ ],
+ "fields": [
+  {
+   "fieldname": "usage_key",
+   "label": "Usage Key",
+   "fieldtype": "Data",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "metric",
+   "label": "Metric",
+   "fieldtype": "Select",
+   "options": "ai\nemail\nsms",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period",
+   "label": "Period",
+   "fieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quantity",
+   "label": "Quantity",
+   "fieldtype": "Int",
+   "reqd": 1
+  },
+  {
+   "fieldname": "actor",
+   "label": "Actor",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  }
+ ],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "modified": "2026-09-21 00:00:00",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "actions": [],
+ "links": [],
+ "states": []
+}

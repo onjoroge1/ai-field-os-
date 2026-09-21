@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import add_days, get_datetime, getdate
 
 from erpnext.field_os.agreements import frappe_repository as repo
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.dispatch.frappe_repository import FrappeDispatchRepository
 from erpnext.field_os.equipment.frappe_repository import CompanyCustomerAdapter
 from erpnext.field_os.security.authorization import authorize
@@ -90,6 +91,7 @@ def options(company: str, customer_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def save_agreement(
 	company: str,
 	customer_id: str,
@@ -129,6 +131,7 @@ def save_agreement(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def set_status(company: str, agreement_id: str, status: str, modified: str):
 	context(company, "dispatch")
 	doc = repo.document(company, agreement_id, lock=True)
@@ -148,6 +151,7 @@ def set_status(company: str, agreement_id: str, status: str, modified: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def renew(company: str, agreement_id: str, ends_on: str, modified: str):
 	context(company, "dispatch")
 	old = repo.document(company, agreement_id, lock=True)
@@ -176,6 +180,7 @@ def renew(company: str, agreement_id: str, ends_on: str, modified: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def schedule_visit(company: str, visit_id: str, technician_id: str, scheduled_for: str):
 	context(company, "dispatch")
 	row = repo.document(company, visit_id, doctype=repo.VISIT)

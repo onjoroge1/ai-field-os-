@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate
 
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.customers.frappe_access import ERPNextCustomerAccessPolicy
 from erpnext.field_os.estimates import workflow
 from erpnext.field_os.estimates.frappe_repository import (
@@ -112,6 +113,7 @@ def _lines(company, values):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def save_estimate(
 	company: str,
 	customer_id: str,
@@ -203,16 +205,19 @@ def save_estimate(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_send(company: str, estimate_id: str):
 	return workflow.preview(_context(company), estimate_id)
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve_send(company: str, proposal_id: str, idempotency_key: str):
 	return workflow.approve(_context(company), proposal_id, idempotency_key)
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def record_decision(
 	company: str, estimate_id: str, decision: str, customer_name: str, evidence: str, comment: str = ""
 ):

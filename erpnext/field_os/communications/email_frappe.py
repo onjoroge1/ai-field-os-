@@ -87,8 +87,12 @@ class FrappeEmailEntityResolver:
 		return EntityLinks()
 
 
-def configured_classifier() -> ModelEmailClassifier:
-	return ModelEmailClassifier(configured_provider())
+def configured_classifier(company=None):
+	# Public ingress never spends model credits or sends customer content to an AI provider.
+	# Verified mailbox polling supplies its explicit tenant to use metered classification.
+	if not company:
+		return DeterministicEmailClassifier()
+	return ModelEmailClassifier(configured_provider(company))
 
 
 def load_email_integration(

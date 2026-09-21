@@ -1,0 +1,99 @@
+{
+ "doctype": "DocType",
+ "name": "Field OS Subscription",
+ "module": "Field OS",
+ "engine": "InnoDB",
+ "autoname": "field:company",
+ "field_order": [
+  "company",
+  "plan",
+  "status",
+  "trial_end",
+  "grace_end",
+  "disabled_features_json",
+  "stripe_customer",
+  "stripe_subscription",
+  "billing_period_end",
+  "billing_event_created"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "plan",
+   "label": "Plan",
+   "fieldtype": "Select",
+   "options": "trial\nstandard\npro\ndemo",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "label": "Status",
+   "fieldtype": "Select",
+   "options": "trialing\nactive\npast_due\nsuspended\ncanceled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trial_end",
+   "label": "Trial End",
+   "fieldtype": "Date"
+  },
+  {
+   "fieldname": "grace_end",
+   "label": "Grace End",
+   "fieldtype": "Date"
+  },
+  {
+   "fieldname": "disabled_features_json",
+   "label": "Disabled Features Json",
+   "fieldtype": "Code",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "stripe_customer",
+   "label": "Stripe Customer",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "stripe_subscription",
+   "label": "Stripe Subscription",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "billing_period_end",
+   "label": "Billing Period End",
+   "fieldtype": "Datetime"
+  },
+  {
+   "fieldname": "billing_event_created",
+   "label": "Billing Event Created",
+   "fieldtype": "Int",
+   "default": 0
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  }
+ ],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "modified": "2026-09-21 00:00:00",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "actions": [],
+ "links": [],
+ "states": []
+}

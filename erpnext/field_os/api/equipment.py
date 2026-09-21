@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_datetime
 
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.equipment.frappe_repository import EQUIPMENT, FrappeEquipmentRepository
 from erpnext.field_os.equipment.service import EquipmentService
 from erpnext.field_os.security.authorization import authorize
@@ -44,6 +45,7 @@ def history(company: str, equipment_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def save_equipment(
 	company: str,
 	customer_id: str,
@@ -73,6 +75,7 @@ def save_equipment(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def add_note(
 	company: str,
 	equipment_id: str,
@@ -92,6 +95,7 @@ def add_note(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def upload_photo(company: str, equipment_id: str, content: str):
 	from PIL import Image, UnidentifiedImageError
 

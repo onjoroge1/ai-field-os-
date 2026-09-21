@@ -10,6 +10,8 @@ from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
+from erpnext.field_os.commercial.access import entitled
+from erpnext.field_os.commercial.metering import MeteredSender
 from erpnext.field_os.communications.email_frappe import configured_classifier
 from erpnext.field_os.communications.frappe_repository import FrappeCommunicationRepository
 from erpnext.field_os.communications.sms import SMSService, render_sms_template
@@ -23,10 +25,10 @@ from erpnext.field_os.security.context import resolve_tenant_context
 _ACTION_ENGINE = ActionEngine()
 
 
-def _service() -> SMSService:
+def _service(company=None) -> SMSService:
 	return SMSService(
 		FrappeCommunicationRepository(),
-		configured_classifier(),
+		configured_classifier(company),
 		FrappeSMSEntityResolver(),
 		FrappeCacheProposalStore(),
 	)
@@ -62,6 +64,7 @@ def delivery_webhook(endpoint_key: str) -> dict[str, object]:
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def create_draft(
 	company: str,
 	thread_id: str,
@@ -88,7 +91,7 @@ def create_draft(
 		transactional = bool(template.transactional)
 	else:
 		transactional = False
-	message = _service().draft(
+	message = _service(context.company).draft(
 		context,
 		thread_id,
 		integration.id,
@@ -101,12 +104,14 @@ def create_draft(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_send(company: str, message_id: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
-	return asdict(_service().preview_send(context, message_id))
+	return asdict(_service(context.company).preview_send(context, message_id))
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve_send(
 	company: str, proposal_id: str, integration_id: str, idempotency_key: str
 ) -> dict[str, object]:
@@ -117,11 +122,11 @@ def approve_send(
 	integration = load_sms_integration(integration_id=integration_id)
 	if integration.company != context.company:
 		raise frappe.PermissionError("SMS integration belongs to another tenant")
-	receipt = _service().approve_send(
+	receipt = _service(context.company).approve_send(
 		context,
 		proposal_id,
 		idempotency_key,
-		integration.provider,
+		MeteredSender(context.company, "sms", integration.provider),
 		integration.id,
 		integration.from_number,
 		_ACTION_ENGINE,
@@ -136,7 +141,7 @@ def poll_enabled_gateways() -> None:
 		try:
 			integration = load_sms_integration(integration_id=name)
 			messages, cursor = integration.provider.poll(integration.poll_cursor, 100)
-			service = _service()
+			service = _service(integration.company)
 			for sms in messages:
 				service.receive(integration.company, integration.id, sms)
 			frappe.db.set_value(
