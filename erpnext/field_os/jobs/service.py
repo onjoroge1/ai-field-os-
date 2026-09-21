@@ -33,7 +33,7 @@ def locked(name):
 	return frappe.get_doc(JOB, name)
 
 
-def enqueue(company, kind, source, *, actor, digest=""):
+def admit(company, kind, source, *, actor, digest=""):
 	if kind not in KINDS or not source:
 		raise ValueError("Unsupported job")
 	lock_company(company)
@@ -69,7 +69,7 @@ class DurableSender:
 			raise PermissionError("Approved message not found")
 		amount = len(set(outbound.to + outbound.cc)) if self.metric == "email" else 1
 		consume(self.context.company, self.metric, outbound.reference_id, amount=amount)
-		job = enqueue(
+		job = admit(
 			self.context.company,
 			self.metric + ".send",
 			message.id,
@@ -149,13 +149,17 @@ def poll(job):
 
 
 def run(name):
-	"""Worker entrypoint. Never whitelist: commits at each durable state boundary."""
+	"""Worker entrypoint. Never whitelist: commits at each durable state boundary.
+
+	Claim and dispatch intent must survive worker death before an external side effect;
+	success/failure then commits separately. Framework end-of-job commit is too late.
+	"""
 	from erpnext.field_os.observability.service import record
 
 	started = time.monotonic()
-	original_user = frappe.session.user
+	if frappe.session.user != "Administrator":
+		raise frappe.PermissionError("Jobs run only in the scheduler worker context")
 	try:
-		frappe.set_user("Administrator")
 		job = locked(name)
 		if job.status not in {"Queued", "Retry"} or get_datetime(job.next_attempt) > now_datetime():
 			frappe.db.rollback()
@@ -165,14 +169,14 @@ def run(name):
 		job.lease_until = now_datetime() + timedelta(minutes=15)
 		job.dispatched = 0
 		job.save(ignore_permissions=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		try:
 			job = locked(name)
 			if job.kind.endswith(".send"):
 				repo, message, provider, outbound = prepare_send(job)
 				job.dispatched = 1
 				job.save(ignore_permissions=True)
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 				job = locked(name)
 				result = provider.send(outbound)
 				repo.save_message(
@@ -195,7 +199,7 @@ def run(name):
 			job.status, job.error_code = "Succeeded", None
 			job.lease_until = None
 			job.save(ignore_permissions=True)
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		except Exception as exc:
 			frappe.db.rollback()
 			job = locked(name)
@@ -216,9 +220,9 @@ def run(name):
 			job.next_attempt = now_datetime() + timedelta(seconds=retry_seconds(job.attempts))
 			job.lease_until = None
 			job.save(ignore_permissions=True)
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 	finally:
-		frappe.set_user(original_user)
+		pass
 
 
 def tick():
@@ -234,7 +238,7 @@ def tick():
 			)
 			job.error_code, job.next_attempt, job.lease_until = "worker_lost", now, None
 			job.save(ignore_permissions=True)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 	for name in frappe.get_all(
 		JOB,
 		filters={"status": ["in", ["Queued", "Retry"]], "next_attempt": ["<=", now]},
@@ -249,6 +253,7 @@ def tick():
 			timeout=600,
 			job_id="field-os:" + name,
 			deduplicate=True,
+			enqueue_after_commit=True,
 		)
 
 
@@ -270,7 +275,7 @@ def schedule_polls():
 				},
 			):
 				continue
-			enqueue(row.company, metric + ".poll", row.name + ":" + slot, actor="Administrator")
+			admit(row.company, metric + ".poll", row.name + ":" + slot, actor="Administrator")
 
 
 def listing(company):
