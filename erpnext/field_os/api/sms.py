@@ -25,7 +25,7 @@ from erpnext.field_os.security.context import resolve_tenant_context
 _ACTION_ENGINE = ActionEngine()
 
 
-def _service(company) -> SMSService:
+def _service(company=None) -> SMSService:
 	return SMSService(
 		FrappeCommunicationRepository(),
 		configured_classifier(company),
@@ -45,7 +45,7 @@ def inbound_webhook(endpoint_key: str) -> dict[str, object]:
 	integration = load_sms_integration(endpoint_key=endpoint_key)
 	raw_body, headers = _raw_request()
 	sms = integration.provider.verify_and_parse_inbound(raw_body, headers, integration.webhook_secret)
-	result = _service(integration.company).receive(integration.company, integration.id, sms)
+	result = _service().receive(integration.company, integration.id, sms)
 	return {
 		"accepted": True,
 		"created": result.ingest.created,
@@ -59,7 +59,7 @@ def delivery_webhook(endpoint_key: str) -> dict[str, object]:
 	integration = load_sms_integration(endpoint_key=endpoint_key)
 	raw_body, headers = _raw_request()
 	event = integration.provider.verify_and_parse_delivery(raw_body, headers, integration.webhook_secret)
-	message = _service(integration.company).apply_delivery_event(integration.company, integration.id, event)
+	message = _service().apply_delivery_event(integration.company, integration.id, event)
 	return {"accepted": True, "message_id": message.id, "state": message.delivery_state.value}
 
 

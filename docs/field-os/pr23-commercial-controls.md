@@ -13,7 +13,7 @@ the setup wizard. Downgrades do not delete users or business records.
 Usage is recorded in an immutable company ledger. A company-row database lock
 serializes admission, and a unique hash scopes idempotency to company, metric and
 source. Monthly allowances reset on the first day of the site's calendar month.
-AI units are successful model responses (including classification); email units
+AI units are successful model responses (including polling classification); email units
 are recipients admitted to outbound delivery; SMS units are logical messages,
 not carrier segments. Delivery, failures and carrier costs are separate facts.
 Repeated native email worker attempts do not consume another admission.
@@ -21,7 +21,7 @@ Repeated native email worker attempts do not consume another admission.
 Trial expiry and suspension leave reads, billing recovery, conversation clearing
 and rejection available. Mutation APIs enforce subscription status and feature
 flags independently of route or model output. Incoming customer messages and
-consent changes are never rejected because of a commercial quota. Classification
+consent changes are never rejected because of a commercial quota. Public webhook intake uses deterministic classification. Polling classification
 falls back to the deterministic classifier if AI is unavailable or exhausted.
 This does not suspend the underlying ERPNext administrator's accounting access.
 
