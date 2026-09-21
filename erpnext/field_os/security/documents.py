@@ -93,6 +93,8 @@ def company_query(user=None, doctype=None):
 	# The framework supplies doctype, never the request. Keep the identifier allowlisted.
 	if doctype not in {
 		"Field OS Subscription",
+		"Field OS Billing Event",
+		"Field OS Subscription Invoice",
 		"Field OS Usage",
 		"Field OS HVAC Equipment",
 		"Field OS Equipment Note",
