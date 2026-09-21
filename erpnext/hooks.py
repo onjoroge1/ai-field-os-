@@ -342,6 +342,7 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Job": "erpnext.field_os.security.documents.company_query",
 	"Field OS Audit Event": "erpnext.field_os.security.documents.company_query",
 	"Field OS Support Grant": "erpnext.field_os.security.documents.company_query",
 	"Field OS Subscription Invoice": "erpnext.field_os.security.documents.company_query",
@@ -367,6 +368,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Job": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Audit Event": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Support Grant": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Subscription Invoice": "erpnext.field_os.commercial.native.read_permission",
@@ -547,13 +549,14 @@ auto_cancel_exempted_doctypes = [
 
 scheduler_events = {
 	"cron": {
+		"* * * * *": ["erpnext.field_os.jobs.service.tick"],
 		"0/15 * * * *": [
 			"erpnext.field_os.estimates.workflow.sync_delivery",
 			"erpnext.field_os.completions.notices.sync_delivery",
 			"erpnext.manufacturing.doctype.bom_update_log.bom_update_log.resume_bom_cost_update_jobs",
 			"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.run_parallel_reposting",
-			"erpnext.field_os.api.email.poll_enabled_mailboxes",
-			"erpnext.field_os.api.sms.poll_enabled_gateways",
+			"erpnext.field_os.jobs.service.schedule_polls",
+
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [

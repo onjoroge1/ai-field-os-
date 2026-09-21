@@ -87,12 +87,12 @@ class FrappeCommunicationRepository:
 				raise PermissionError("Cross-tenant thread update rejected")
 			doc.update(values)
 			doc.set("participants", participants)
-			doc.save()
+			doc.save(ignore_permissions=True)
 		else:
 			doc = frappe.get_doc(
 				{"doctype": "Field OS Communication Thread", **values, "participants": participants}
 			)
-			doc.insert()
+			doc.insert(ignore_permissions=True)
 		return self._thread(doc)
 
 	def list_threads(self, company, *, states=(), channel=None, assigned_to=None, limit=50):
@@ -178,10 +178,10 @@ class FrappeCommunicationRepository:
 			if doc.company != message.company:
 				raise PermissionError("Cross-tenant message update rejected")
 			doc.update(values)
-			doc.save()
+			doc.save(ignore_permissions=True)
 		else:
 			doc = frappe.get_doc(values)
-			doc.insert()
+			doc.insert(ignore_permissions=True)
 		return self._message(doc)
 
 	def list_messages(self, company, thread_id, limit=100):
@@ -236,7 +236,7 @@ class FrappeCommunicationRepository:
 				"proof": preference.proof,
 			}
 		)
-		doc.save() if name else doc.insert()
+		doc.save(ignore_permissions=True) if name else doc.insert(ignore_permissions=True)
 		return preference
 
 	@staticmethod
@@ -271,7 +271,7 @@ class FrappeCommunicationRepository:
 			tuple(
 				CommunicationParticipant(
 					item["address"],
-					ParticipantRole(item["role"]),
+					ParticipantRole(item.get("role") or item["participant_role"]),
 					item.get("display_name"),
 					item.get("contact_id"),
 				)
