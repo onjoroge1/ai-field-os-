@@ -10,6 +10,8 @@ from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
+from erpnext.field_os.commercial.access import entitled
+from erpnext.field_os.commercial.metering import MeteredSender
 from erpnext.field_os.communications.email import EmailService
 from erpnext.field_os.communications.email_frappe import (
 	FrappeEmailEntityResolver,
@@ -22,10 +24,10 @@ from erpnext.field_os.security.context import resolve_tenant_context
 _ACTION_ENGINE = ActionEngine()
 
 
-def _service() -> EmailService:
+def _service(company) -> EmailService:
 	return EmailService(
 		FrappeCommunicationRepository(),
-		configured_classifier(),
+		configured_classifier(company),
 		FrappeEmailEntityResolver(),
 		FrappeCacheProposalStore(),
 	)
@@ -42,7 +44,7 @@ def inbound_webhook(mailbox_key: str) -> dict[str, object]:
 	integration = load_email_integration(mailbox_key=mailbox_key)
 	raw_body, headers = _raw_request()
 	email = integration.provider.verify_and_parse_inbound(raw_body, headers, integration.webhook_secret)
-	result = _service().receive(integration.company, integration.id, email)
+	result = _service(integration.company).receive(integration.company, integration.id, email)
 	return {"accepted": True, "created": result.created, "message_id": result.message.id}
 
 
@@ -51,11 +53,12 @@ def delivery_webhook(mailbox_key: str) -> dict[str, object]:
 	integration = load_email_integration(mailbox_key=mailbox_key)
 	raw_body, headers = _raw_request()
 	event = integration.provider.verify_and_parse_delivery(raw_body, headers, integration.webhook_secret)
-	message = _service().apply_delivery_event(integration.company, integration.id, event)
+	message = _service(integration.company).apply_delivery_event(integration.company, integration.id, event)
 	return {"accepted": True, "message_id": message.id, "state": message.delivery_state.value}
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def create_draft(
 	company: str,
 	thread_id: str,
@@ -75,7 +78,7 @@ def create_draft(
 		frappe.throw(_("Email recipients must be JSON arrays"), frappe.ValidationError)
 	to_addresses = tuple(str(item).strip() for item in to_payload if str(item).strip())
 	cc_addresses = tuple(str(item).strip() for item in cc_payload if str(item).strip())
-	message = _service().draft(
+	message = _service(context.company).draft(
 		context,
 		thread_id,
 		integration.id,
@@ -89,12 +92,14 @@ def create_draft(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_send(company: str, message_id: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
-	return asdict(_service().preview_send(context, message_id))
+	return asdict(_service(context.company).preview_send(context, message_id))
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve_send(
 	company: str, proposal_id: str, integration_id: str, idempotency_key: str
 ) -> dict[str, object]:
@@ -105,11 +110,11 @@ def approve_send(
 	integration = load_email_integration(integration_id=integration_id)
 	if integration.company != context.company:
 		raise frappe.PermissionError("Email integration belongs to another tenant")
-	receipt = _service().approve_send(
+	receipt = _service(context.company).approve_send(
 		context,
 		proposal_id,
 		idempotency_key,
-		integration.provider,
+		MeteredSender(context.company, "email", integration.provider),
 		integration.id,
 		integration.from_address,
 		_ACTION_ENGINE,
@@ -124,7 +129,7 @@ def poll_enabled_mailboxes() -> None:
 		try:
 			integration = load_email_integration(integration_id=name)
 			emails, cursor = integration.provider.poll(integration.poll_cursor, 100)
-			service = _service()
+			service = _service(integration.company)
 			for email in emails:
 				service.receive(integration.company, integration.id, email)
 			frappe.db.set_value(

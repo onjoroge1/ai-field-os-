@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 
 from erpnext.field_os.actions.engine import ActionEngine
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.communications.frappe_repository import FrappeCommunicationRepository
 from erpnext.field_os.communications.models import (
 	CommunicationChannel,
@@ -78,12 +79,14 @@ def thread(company: str, thread_id: str) -> dict[str, object]:
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def assign(company: str, thread_id: str, user: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	return asdict(_service().assign(context, thread_id, user, idempotency_key, _ACTION_ENGINE))
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def set_state(company: str, thread_id: str, state: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	try:
@@ -94,6 +97,7 @@ def set_state(company: str, thread_id: str, state: str, idempotency_key: str) ->
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def correct(
 	company: str,
 	thread_id: str,
@@ -107,6 +111,7 @@ def correct(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def create_service_request(company: str, thread_id: str, idempotency_key: str) -> dict[str, object]:
 	context = resolve_tenant_context(company)
 	return asdict(_service().create_service_request(context, thread_id, idempotency_key, _ACTION_ENGINE))
@@ -192,6 +197,7 @@ def _reply_configuration(context, detail) -> dict[str, object]:
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def prepare_reply(
 	company: str,
 	thread_id: str,

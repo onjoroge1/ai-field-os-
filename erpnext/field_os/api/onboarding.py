@@ -4,6 +4,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_system_timezone
 
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.onboarding import native
 
 
@@ -35,6 +36,7 @@ def get_setup(company: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def save_step(company: str, step: str, values: dict | list | str, version: str):
 	ctx = native.context(company)
 	method = {
@@ -49,6 +51,7 @@ def save_step(company: str, step: str, values: dict | list | str, version: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def complete(company: str, version: str):
 	return native.complete(native.context(company), version)
 

@@ -5,6 +5,7 @@ import json
 import frappe
 from frappe import _
 
+from erpnext.field_os.commercial.access import entitled
 from erpnext.field_os.completions import repository as repo
 from erpnext.field_os.dispatch.frappe_repository import FrappeDispatchRepository
 from erpnext.field_os.security.authorization import capabilities_for
@@ -50,6 +51,7 @@ def get_completion(company: str, completion_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def start_completion(company: str, visit_id: str):
 	ctx = repo.context(company, "field_update")
 	job = repo.visit(ctx, visit_id, write=True, lock=True)
@@ -75,6 +77,7 @@ def start_completion(company: str, visit_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def save_completion(company: str, completion_id: str, values: dict | str, version: str):
 	ctx = repo.context(company, "field_update")
 	doc, job = repo.document(ctx, completion_id, write=True, lock=True)
@@ -106,6 +109,7 @@ def save_completion(company: str, completion_id: str, values: dict | str, versio
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def upload_evidence(company: str, completion_id: str, content: str, kind: str = "Photo"):
 	from erpnext.field_os.completions.media import save_image
 
@@ -117,6 +121,7 @@ def upload_evidence(company: str, completion_id: str, content: str, kind: str = 
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def complete(company: str, completion_id: str, version: str):
 	return repo.finish(repo.context(company, "field_update"), completion_id, version)
 
@@ -158,6 +163,7 @@ def options(company: str, completion_id: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_invoice(company: str, completion_id: str, due_date: str, tax_template: str = ""):
 	from erpnext.field_os.completions import billing
 
@@ -165,6 +171,7 @@ def preview_invoice(company: str, completion_id: str, due_date: str, tax_templat
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve_invoice(company: str, proposal_id: str, idempotency_key: str):
 	from erpnext.field_os.completions import billing
 
@@ -172,6 +179,7 @@ def approve_invoice(company: str, proposal_id: str, idempotency_key: str):
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def preview_notice(
 	company: str, completion_id: str, recipient: str, integration_id: str, kind: str = "Invoice"
 ):
@@ -181,6 +189,7 @@ def preview_notice(
 
 
 @frappe.whitelist(methods=["POST"])
+@entitled
 def approve_notice(company: str, proposal_id: str, idempotency_key: str):
 	from erpnext.field_os.completions import notices
 

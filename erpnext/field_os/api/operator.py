@@ -22,6 +22,7 @@ def _navigation(capabilities: frozenset[str]) -> list[dict[str, str]]:
 		("work", "Service work", "read"),
 		("inbox", "Inbox", "communicate"),
 		("setup", "Company setup", "admin"),
+		("commercial", "Plan & usage", "admin"),
 		("imports", "Data import", "admin"),
 	]
 	return [

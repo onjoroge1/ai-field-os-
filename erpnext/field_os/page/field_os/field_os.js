@@ -8,6 +8,7 @@ frappe.pages["field-os"].on_page_load = function (wrapper) {
 			"/assets/erpnext/js/field_os_onboarding.js",
 			"/assets/erpnext/js/field_os_migrations.js",
 			"/assets/erpnext/js/field_os_demo.js",
+			"/assets/erpnext/js/field_os_commercial.js",
 		],
 		() => {
 			const page = frappe.ui.make_app_page({
@@ -35,6 +36,7 @@ class FieldOSApp {
 		this.onboarding = new frappe.field_os.Onboarding(this);
 		this.migrations = new frappe.field_os.Migrations(this);
 		this.demo = new frappe.field_os.Demo(this);
+		this.commercial = new frappe.field_os.Commercial(this);
 		this.bind();
 		this.refresh();
 	}
@@ -80,6 +82,7 @@ class FieldOSApp {
 			else if (this.activeView === "setup") this.onboarding.open();
 			else if (this.activeView === "imports") this.migrations.open();
 			else if (this.activeView === "demo") this.demo.open();
+			else if (this.activeView === "commercial") this.commercial.open();
 			else this.renderComingSoon(event.currentTarget.textContent.trim());
 		});
 		this.root.on("click", "[data-doctype]", (event) => {

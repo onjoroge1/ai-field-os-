@@ -87,8 +87,8 @@ class FrappeEmailEntityResolver:
 		return EntityLinks()
 
 
-def configured_classifier() -> ModelEmailClassifier:
-	return ModelEmailClassifier(configured_provider())
+def configured_classifier(company) -> ModelEmailClassifier:
+	return ModelEmailClassifier(configured_provider(company))
 
 
 def load_email_integration(

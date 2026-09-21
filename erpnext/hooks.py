@@ -89,7 +89,10 @@ after_install = [
 	"erpnext.setup.install.after_install",
 	"erpnext.field_os.install.ensure_native_read_permissions",
 ]
-after_migrate = "erpnext.field_os.install.ensure_native_read_permissions"
+after_migrate = [
+	"erpnext.field_os.install.ensure_native_read_permissions",
+	"erpnext.field_os.commercial.native.migrate_subscriptions",
+]
 
 after_app_install = "erpnext.setup.install.after_app_install"
 after_app_uninstall = "erpnext.setup.install.after_app_uninstall"
@@ -337,6 +340,8 @@ sounds = [
 has_upload_permission = {"Employee": "erpnext.setup.doctype.employee.employee.has_upload_permission"}
 
 permission_query_conditions = {
+	"Field OS Usage": "erpnext.field_os.security.documents.company_query",
+	"Field OS Subscription": "erpnext.field_os.security.documents.company_query",
 	"Field OS Demo Tenant": "erpnext.field_os.security.documents.company_query",
 	"Field OS Migration Batch": "erpnext.field_os.security.documents.company_query",
 	"Field OS Migration Record": "erpnext.field_os.security.documents.company_query",
@@ -356,6 +361,8 @@ permission_query_conditions = {
 }
 
 has_permission = {
+	"Field OS Usage": "erpnext.field_os.commercial.native.read_permission",
+	"Field OS Subscription": "erpnext.field_os.commercial.native.read_permission",
 	"Field OS Demo Tenant": "erpnext.field_os.security.documents.demo_permission",
 	"Field OS Migration Batch": "erpnext.field_os.security.documents.onboarding_permission",
 	"Field OS Migration Record": "erpnext.field_os.security.documents.onboarding_permission",
@@ -420,7 +427,12 @@ pre_submit_validation_doctypes = [
 ]
 
 doc_events = {
-	"Email Queue": {"before_insert": "erpnext.field_os.demo.safety.validate_email_queue"},
+	"Email Queue": {
+		"before_insert": "erpnext.field_os.demo.safety.validate_email_queue",
+		"after_insert": "erpnext.field_os.commercial.metering.native_mail",
+	},
+	"Company": {"after_insert": "erpnext.field_os.commercial.native.provision_company"},
+	"User Permission": {"validate": "erpnext.field_os.commercial.native.validate_membership"},
 	"*": {
 		"validate": [
 			"erpnext.support.doctype.service_level_agreement.service_level_agreement.apply",
@@ -443,7 +455,10 @@ doc_events = {
 	},
 	"User": {
 		"after_insert": "frappe.contacts.doctype.contact.contact.update_contact",
-		"validate": "erpnext.setup.doctype.employee.employee.validate_employee_role",
+		"validate": [
+			"erpnext.setup.doctype.employee.employee.validate_employee_role",
+			"erpnext.field_os.commercial.native.validate_user",
+		],
 		"on_update": "erpnext.portal.utils.set_default_role",
 	},
 	"Communication": {
