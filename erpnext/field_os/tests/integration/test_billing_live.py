@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import frappe
+import stripe
 
 from erpnext.field_os.api import billing as api
 from erpnext.field_os.commercial import billing, native
@@ -62,21 +63,24 @@ class LiveBilling(unittest.TestCase):
 	def remote(self, status="active"):
 		self.api.v1.subscriptions.list.return_value = frappe._dict(
 			data=[
-				frappe._dict(
-					id="sub_fixture",
-					customer="cus_fixture",
-					livemode=False,
-					status=status,
-					metadata={"field_os": billing.digest(COMPANY_A, "tenant")},
-					items={
-						"data": [
-							{
-								"quantity": 1,
-								"price": {"id": "price_standard"},
-								"current_period_end": 2000000000,
-							}
-						]
-					},
+				stripe.Subscription.construct_from(
+					dict(
+						id="sub_fixture",
+						customer="cus_fixture",
+						livemode=False,
+						status=status,
+						metadata={"field_os": billing.digest(COMPANY_A, "tenant")},
+						items={
+							"data": [
+								{
+									"quantity": 1,
+									"price": {"id": "price_standard"},
+									"current_period_end": 2000000000,
+								}
+							]
+						},
+					),
+					"fixture",
 				)
 			],
 			has_more=False,
