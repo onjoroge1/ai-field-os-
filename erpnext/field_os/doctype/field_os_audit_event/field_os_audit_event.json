@@ -1,0 +1,78 @@
+{
+ "doctype": "DocType",
+ "name": "Field OS Audit Event",
+ "module": "Field OS",
+ "engine": "InnoDB",
+ "autoname": "hash",
+ "field_order": [
+  "company",
+  "actor",
+  "action",
+  "reference",
+  "outcome",
+  "correlation_id",
+  "details_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "actor",
+   "label": "Actor",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "action",
+   "label": "Action",
+   "fieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference",
+   "label": "Reference",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "outcome",
+   "label": "Outcome",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "correlation_id",
+   "label": "Correlation Id",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "details_json",
+   "label": "Details Json",
+   "fieldtype": "Code",
+   "options": "JSON"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  }
+ ],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "modified": "2026-09-21 00:00:00",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "actions": [],
+ "links": [],
+ "states": []
+}

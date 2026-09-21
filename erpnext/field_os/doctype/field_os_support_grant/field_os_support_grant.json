@@ -1,0 +1,75 @@
+{
+ "doctype": "DocType",
+ "name": "Field OS Support Grant",
+ "module": "Field OS",
+ "engine": "InnoDB",
+ "autoname": "hash",
+ "field_order": [
+  "company",
+  "support_user",
+  "approved_by",
+  "reason",
+  "expires_at",
+  "revoked"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "label": "Company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "support_user",
+   "label": "Support User",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "approved_by",
+   "label": "Approved By",
+   "fieldtype": "Link",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reason",
+   "label": "Reason",
+   "fieldtype": "Small Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "expires_at",
+   "label": "Expires At",
+   "fieldtype": "Datetime",
+   "reqd": 1
+  },
+  {
+   "fieldname": "revoked",
+   "label": "Revoked",
+   "fieldtype": "Check",
+   "default": 0
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1
+  },
+  {
+   "role": "Field OS Owner",
+   "read": 1
+  }
+ ],
+ "track_changes": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "modified": "2026-09-21 00:00:00",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "actions": [],
+ "links": [],
+ "states": []
+}

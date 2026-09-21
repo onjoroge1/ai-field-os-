@@ -63,10 +63,11 @@ def return_url():
 	return host + "/desk/field-os"
 
 
-def owner(company):
+def owner(company, *, write=True):
 	context = resolve_tenant_context(company)
 	authorize(context, "admin")
-	block_delivery(company)
+	if write:
+		block_delivery(company)
 	return context
 
 
@@ -247,12 +248,12 @@ def receive(raw, signature):
 
 
 def view(company):
-	owner(company)
+	owner(company, write=False)
 	doc = native.subscription(company)
 	try:
 		settings()
 		return_url()
-		configured = True
+		configured = not frappe.db.exists("Field OS Demo Tenant", {"company": company})
 	except frappe.ValidationError:
 		frappe.clear_messages()
 		configured = False
