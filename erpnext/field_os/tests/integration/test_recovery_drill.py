@@ -41,6 +41,15 @@ def run():
 			"--kwargs",
 			json.dumps({"descriptor": str(root / "descriptor.json")}),
 		)
+		# Separate bench commands let the framework commit fixture setup before the dump.
+		command(
+			"--site",
+			source,
+			"execute",
+			"erpnext.field_os.tests.integration.test_recovery_live.snapshot",
+			"--kwargs",
+			json.dumps({"descriptor": str(root / "descriptor.json")}),
+		)
 		artifact = json.loads((root / "descriptor.json").read_text())["artifact"]
 		started = time.monotonic()
 		stage = root / "verified"

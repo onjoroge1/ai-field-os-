@@ -42,8 +42,6 @@ def prepare(descriptor):
 	).save(ignore_permissions=True)
 	credential = secrets.token_hex(32)
 	set_encrypted_password("User", OWNER, credential, "api_secret")
-	# The independent dump connection must see the fixture and encrypted credential.
-	frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 	proof = {
 		"counts": {doctype: frappe.db.count(doctype) for doctype in DOCTYPES},
 		"companies": [COMPANY_A, COMPANY_B],
@@ -52,6 +50,12 @@ def prepare(descriptor):
 		"user": OWNER,
 		"credential_sha256": hashlib.sha256(credential.encode()).hexdigest(),
 	}
+	Path(descriptor).write_text(json.dumps({"proof": proof}))
+
+
+def snapshot(descriptor):
+	guard()
+	proof = json.loads(Path(descriptor).read_text())["proof"]
 	artifact = take_backup(proof=proof)
 	Path(descriptor).write_text(json.dumps({"artifact": artifact}))
 
