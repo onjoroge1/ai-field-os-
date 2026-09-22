@@ -1,6 +1,7 @@
 """Database outbox; Redis is transport, never the durable source of job state."""
 
 import hashlib
+import time
 from dataclasses import replace
 from datetime import timedelta
 
@@ -153,6 +154,9 @@ def run(name):
 	Claim and dispatch intent must survive worker death before an external side effect;
 	success/failure then commits separately. Framework end-of-job commit is too late.
 	"""
+	from erpnext.field_os.observability.service import record
+
+	started = time.monotonic()
 	if frappe.session.user != "Administrator":
 		raise frappe.PermissionError("Jobs run only in the scheduler worker context")
 	try:
@@ -160,6 +164,7 @@ def run(name):
 		if job.status not in {"Queued", "Retry"} or get_datetime(job.next_attempt) > now_datetime():
 			frappe.db.rollback()
 			return
+		frappe.local.field_os_correlation = job.correlation_id or job.name
 		job.status, job.attempts = "Running", job.attempts + 1
 		job.lease_until = now_datetime() + timedelta(minutes=15)
 		job.dispatched = 0
@@ -185,6 +190,12 @@ def run(name):
 				)
 			else:
 				poll(job)
+			record(
+				"job",
+				company=job.company,
+				duration_ms=(time.monotonic() - started) * 1000,
+				parent_id=job.name,
+			)
 			job.status, job.error_code = "Succeeded", None
 			job.lease_until = None
 			job.save(ignore_permissions=True)
@@ -197,6 +208,13 @@ def run(name):
 				dispatched=job.dispatched,
 				replay_safe=job.replay_safe,
 				permanent=isinstance(exc, PermissionError | ValueError | frappe.PermissionError),
+			)
+			record(
+				"job",
+				company=job.company,
+				duration_ms=(time.monotonic() - started) * 1000,
+				failed=True,
+				parent_id=job.name,
 			)
 			job.error_code = "send_failed" if job.kind.endswith(".send") else "poll_failed"
 			job.next_attempt = now_datetime() + timedelta(seconds=retry_seconds(job.attempts))

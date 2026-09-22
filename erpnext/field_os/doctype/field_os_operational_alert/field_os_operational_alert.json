@@ -1,0 +1,53 @@
+{
+  "doctype": "DocType",
+  "name": "Field OS Operational Alert",
+  "module": "Field OS",
+  "engine": "InnoDB",
+  "autoname": "field:alert_key",
+  "field_order": ["alert_key", "company", "code", "status", "last_checked"],
+  "fields": [
+    {
+      "fieldname": "alert_key",
+      "label": "Alert Key",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company"
+    },
+    {
+      "fieldname": "code",
+      "label": "Code",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Open\nResolved"
+    },
+    {
+      "fieldname": "last_checked",
+      "label": "Last Checked",
+      "fieldtype": "Datetime"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1
+    },
+    {
+      "role": "Field OS Owner",
+      "read": 1
+    }
+  ],
+  "modified": "2026-09-21 00:00:00",
+  "modified_by": "Administrator",
+  "owner": "Administrator",
+  "actions": [],
+  "links": [],
+  "states": []
+}

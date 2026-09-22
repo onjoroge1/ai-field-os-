@@ -41,9 +41,42 @@ frappe.field_os.Commercial = class {
 			await this.billing();
 			await this.support();
 			await this.jobs();
+			await this.operations();
 		} catch (error) {
 			app.renderError(__("Plan details could not be loaded."));
 		}
+	}
+
+	async operations() {
+		const { message: data } = await frappe.call({
+			method: "erpnext.field_os.api.operations.get_dashboard",
+			args: { company: this.app.company },
+		});
+		if (this.app.activeView !== "commercial") return;
+		const escape = frappe.utils.escape_html;
+		const metric = data.metrics;
+		this.app.root.find('[data-role="content"]')
+			.append(`<section class="field-os__panel" data-operations-summary><h3>${__(
+			"Operations · last 60 minutes"
+		)}</h3>
+		<p>${__("Measured operations")}: ${metric.spans} · ${__("Errors")}: ${metric.errors} · ${__(
+			"95th percentile latency"
+		)}: ${escape(String(metric.p95_ms ?? "—"))} ms</p>
+		<p>${__("Estimated AI cost (USD)")}: ${metric.estimated_ai_cost_usd.toFixed(4)} · ${__(
+			"AI requests without cost data"
+		)}: ${metric.unpriced_ai}</p>
+		<p>${__("Late jobs")}: ${metric.overdue_jobs} · ${__("Failed jobs")}: ${metric.dead_jobs} · ${__(
+			"Unknown delivery"
+		)}: ${metric.uncertain_jobs}</p>
+		<p>${__("Current alerts")}: ${escape(data.conditions.join(", ") || __("None"))}</p>
+		<table class="table"><thead><tr><th>${__("Feature")}</th><th>${__(
+			"Operations"
+		)}</th></tr></thead><tbody>${Object.entries(metric.features)
+			.map(([name, count]) => `<tr><td>${escape(name)}</td><td>${count}</td></tr>`)
+			.join("")}</tbody></table>
+		<p>${__(
+			"Latency includes request and worker spans. Cost is estimated from configured token rates; provider invoices remain authoritative."
+		)}</p></section>`);
 	}
 
 	async jobs() {

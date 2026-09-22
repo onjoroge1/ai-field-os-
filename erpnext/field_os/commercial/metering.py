@@ -1,5 +1,6 @@
 """Meter native mail queue admissions and synchronous provider responses."""
 
+import time
 from uuid import uuid4
 
 from erpnext.field_os.commercial.native import consume
@@ -13,12 +14,23 @@ class MeteredModel:
 		# Reservation and response commit together. Failed requests roll back the reservation.
 		import frappe
 
+		from erpnext.field_os.observability.service import model_cost, record
+
+		started = time.monotonic()
 		savepoint = "usage_" + uuid4().hex
 		frappe.db.savepoint(savepoint)
 		try:
 			consume(self.company, "ai", str(uuid4()))
-			return self.provider.respond(messages, tools)
+			reply = self.provider.respond(messages, tools)
+			record(
+				"ai",
+				company=self.company,
+				duration_ms=(time.monotonic() - started) * 1000,
+				cost=model_cost(reply),
+			)
+			return reply
 		except Exception:
+			record("ai", company=self.company, duration_ms=(time.monotonic() - started) * 1000, failed=True)
 			frappe.db.rollback(save_point=savepoint)
 			raise
 
