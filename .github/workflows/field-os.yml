@@ -187,7 +187,10 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
           env/bin/pip install pip-audit
-          env/bin/pip-audit --format json --output logs/dependency-audit.json
+          if ! env/bin/pip-audit --format json --output logs/dependency-audit.json; then
+            env/bin/python -c "import json; print(json.dumps([d for d in json.load(open('logs/dependency-audit.json'))['dependencies'] if d.get('vulns')], indent=2))"
+            exit 1
+          fi
       - name: Preserve dependency audit
         if: always()
         uses: actions/upload-artifact@v4
