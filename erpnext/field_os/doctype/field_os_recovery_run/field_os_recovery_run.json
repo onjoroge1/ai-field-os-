@@ -1,0 +1,61 @@
+{
+  "doctype": "DocType",
+  "name": "Field OS Recovery Run",
+  "module": "Field OS",
+  "engine": "InnoDB",
+  "autoname": "hash",
+  "field_order": [
+    "kind",
+    "status",
+    "artifact_id",
+    "finished_at",
+    "duration_seconds",
+    "error_code"
+  ],
+  "fields": [
+    {
+      "fieldname": "kind",
+      "label": "Kind",
+      "fieldtype": "Select",
+      "options": "Backup\nRestore Drill"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Succeeded\nFailed"
+    },
+    {
+      "fieldname": "artifact_id",
+      "label": "Artifact Id",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "finished_at",
+      "label": "Finished At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "duration_seconds",
+      "label": "Duration Seconds",
+      "fieldtype": "Float"
+    },
+    {
+      "fieldname": "error_code",
+      "label": "Error Code",
+      "fieldtype": "Data"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": 1
+    }
+  ],
+  "modified": "2026-09-21 00:00:00",
+  "modified_by": "Administrator",
+  "owner": "Administrator",
+  "actions": [],
+  "links": [],
+  "states": []
+}

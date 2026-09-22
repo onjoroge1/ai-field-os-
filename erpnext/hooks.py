@@ -571,7 +571,7 @@ scheduler_events = {
 		"erpnext.field_os.commercial.billing.reconcile",
 		"erpnext.projects.doctype.project.project.hourly_reminder",
 	],
-	"hourly_long": [],
+	"hourly_long": ["erpnext.field_os.recovery.service.scheduled"],
 	"hourly_maintenance": [
 		"erpnext.crm.doctype.appointment.appointment.handle_expired_unverified_appointments",
 		"erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.repost_entries",
