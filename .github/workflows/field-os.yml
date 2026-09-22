@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
+      - name: Install encrypted backup test dependency
+        run: pip install "cryptography~=50.0.0"
       - name: Compile Field OS Python
         run: python -m compileall -q erpnext/field_os
       - name: Run isolated Field OS regression tests
@@ -183,6 +185,19 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"
           bench --site fieldos.test execute erpnext.field_os.tests.integration.test_observability_live.run
+      - name: Verify encrypted database files and credential recovery on a new site
+        env:
+          FIELD_OS_RECOVERY_DRILL: "1"
+          FIELD_OS_TEST_DB_ROOT_PASSWORD: fieldos-test-root
+        run: |
+          cd "$RUNNER_TEMP/fieldos-bench"
+          env/bin/python apps/erpnext/erpnext/field_os/tests/integration/test_recovery_drill.py
+      - name: Preserve recovery drill report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-drill
+          path: ${{ runner.temp }}/fieldos-bench/logs/recovery-drill.json
       - name: Audit installed runtime dependencies
         run: |
           cd "$RUNNER_TEMP/fieldos-bench"

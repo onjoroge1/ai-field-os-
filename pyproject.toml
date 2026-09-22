@@ -16,6 +16,7 @@ dependencies = [
 
     # Field OS subscription billing (hosted Checkout and Portal)
     "stripe~=15.6.1",
+    "cryptography~=50.0.0",  # Field OS authenticated backup envelopes
 
     # integration dependencies
     "googlemaps~=4.10.0",
