@@ -31,6 +31,7 @@ from erpnext.field_os.communications.models import (
 	ParticipantRole,
 	ThreadState,
 )
+from erpnext.field_os.communications.ordering import accept_delivery, timestamp
 from erpnext.field_os.communications.repository import CommunicationRepository
 from erpnext.field_os.communications.service import CommunicationService, normalize_address
 from erpnext.field_os.security.authorization import authorize
@@ -192,6 +193,11 @@ class SMSService:
 
 	def receive(self, company: str, integration_id: str, sms: InboundSMS) -> SMSReceiveResult:
 		from_number = normalize_address(CommunicationChannel.SMS, sms.from_number)
+		previous = self.repository.find_message_by_dedupe(company, f"{integration_id}:{sms.external_id}")
+		if previous:
+			return SMSReceiveResult(
+				IngestResult(self.repository.get_thread(company, previous.thread_id), previous, False)
+			)
 		consent_state = self._apply_keyword(company, from_number, sms.body, sms.received_at)
 		if (
 			consent_state is None
@@ -403,6 +409,8 @@ class SMSService:
 		)
 		if message is None:
 			raise ValueError("Delivery event references an unknown SMS")
+		if not accept_delivery(message, event):
+			return message
 		return self.repository.save_message(
 			replace(
 				message,
@@ -428,6 +436,15 @@ class SMSService:
 			else None
 		)
 		if state:
+			previous = self.repository.get_preference(company, CommunicationChannel.SMS, address)
+			if previous and (
+				timestamp(previous.updated_at) > timestamp(occurred_at)
+				or (
+					timestamp(previous.updated_at) == timestamp(occurred_at)
+					and state != ConsentState.OPTED_OUT
+				)
+			):
+				return previous.state
 			self.repository.save_preference(
 				ContactPreference(
 					company, address, CommunicationChannel.SMS, state, "inbound_keyword", occurred_at, keyword

@@ -30,6 +30,7 @@ from erpnext.field_os.communications.models import (
 	ParticipantRole,
 	ThreadState,
 )
+from erpnext.field_os.communications.ordering import accept_delivery
 from erpnext.field_os.communications.repository import CommunicationRepository
 from erpnext.field_os.communications.service import CommunicationService, normalize_address
 from erpnext.field_os.security.authorization import authorize
@@ -184,11 +185,11 @@ class FrappeEmailProvider:
 			message=email.body,
 			reference_doctype="Field OS Communication Message",
 			reference_name=email.reference_id,
-			now=True,
+			now=False,
 		)
 		return EmailSendResult(
 			f"frappe:{email.reference_id}:{hashlib.sha256(email.idempotency_key.encode()).hexdigest()[:24]}",
-			DeliveryState.SENT,
+			DeliveryState.QUEUED,
 			datetime.now(UTC),
 		)
 
@@ -218,6 +219,9 @@ class EmailService:
 		self.proposals = proposals
 
 	def receive(self, company: str, integration_id: str, email: InboundEmail) -> IngestResult:
+		previous = self.repository.find_message_by_dedupe(company, f"{integration_id}:{email.external_id}")
+		if previous:
+			return IngestResult(self.repository.get_thread(company, previous.thread_id), previous, False)
 		classification = self.classifier.classify(email.subject, email.body)
 		links = self.resolver.resolve(company, email.from_address)
 		sender = CommunicationParticipant(
@@ -416,6 +420,8 @@ class EmailService:
 		)
 		if message is None:
 			raise ValueError("Delivery event references an unknown email")
+		if not accept_delivery(message, event):
+			return message
 		metadata = {
 			**message.metadata,
 			**(event.metadata or {}),

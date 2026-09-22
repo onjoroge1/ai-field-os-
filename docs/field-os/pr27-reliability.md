@@ -1,0 +1,13 @@
+# PR27 — Durable jobs and provider recovery
+
+Approved Inbox email/SMS sends enter a company-scoped MariaDB outbox in the same transaction as the approved message and usage admission. Repeated source IDs share one job. The one-minute scheduler relays up to 100 due rows to RQ; losing Redis does not lose the outbox. Poll jobs are scheduled every 15 minutes, store their cursor with ingested messages, and serialize unfinished work per integration.
+
+Workers claim a row under a database lock, persist a 15-minute lease, and recheck the approving user's enabled status, tenant, role, entitlement, integration, exact message digest, demo restriction and current consent. Native email inserts into Frappe Email Queue transactionally. Five safe attempts use exponential delays (30 seconds up to one hour) before Dead status. Interrupted or failed external sends without guaranteed provider idempotency become Uncertain. An adapter may advertise `supports_idempotency = True` only after provider contract tests establish durable enforcement of the supplied key; the native SMS adapter does not advertise it.
+
+Owners use Plan & usage → Background jobs to inspect up to 100 recent jobs. Dead work can be replayed after fixing the cause. Uncertain work requires documented provider reconciliation: receipt if accepted, or explicit confirmation it was not sent. Every decision creates an immutable audit event. Replays retain the stable provider key and original approval digest and recheck authorization. This is at-least-once transport with conservative handling of ambiguous delivery, not an exactly-once network guarantee. The native email queue remains responsible for SMTP retry/delivery reporting; Succeeded means handed to that queue.
+
+Inbound duplicates are detected before classification or consent changes. Older consent keywords and stale delivery events cannot reverse newer state. Typed communication persistence authorizes tenant links before privileged writes so signature-verified guest ingestion can persist without granting Guest document permissions.
+
+Operational response: inspect scheduler and short worker availability; restore Redis, then wait for relay. For Dead jobs fix credentials/consent/configuration, then retry with evidence. For Uncertain jobs check provider logs before any resend. Do not bulk reset Running or Uncertain to Queued. Records are retained for support; archival policy is deferred until retention requirements are agreed.
+
+Validation: isolated retry/ordering regressions and cumulative native outbox acceptance cover duplicate worker delivery, retry persistence, expired leases, error redaction and cross-company replay denial. Native/browser CI must pass before merge. No production provider fault injection has been run.

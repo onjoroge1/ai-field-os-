@@ -11,7 +11,6 @@ from frappe import _
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
 from erpnext.field_os.commercial.access import entitled
-from erpnext.field_os.commercial.metering import MeteredSender
 from erpnext.field_os.communications.email_frappe import configured_classifier
 from erpnext.field_os.communications.frappe_repository import FrappeCommunicationRepository
 from erpnext.field_os.communications.sms import SMSService, render_sms_template
@@ -20,6 +19,7 @@ from erpnext.field_os.communications.sms_frappe import (
 	load_sms_integration,
 	load_sms_template,
 )
+from erpnext.field_os.jobs.service import DurableSender
 from erpnext.field_os.security.context import resolve_tenant_context
 
 _ACTION_ENGINE = ActionEngine()
@@ -126,36 +126,9 @@ def approve_send(
 		context,
 		proposal_id,
 		idempotency_key,
-		MeteredSender(context.company, "sms", integration.provider),
+		DurableSender(context, "sms", integration.id),
 		integration.id,
 		integration.from_number,
 		_ACTION_ENGINE,
 	)
 	return asdict(receipt)
-
-
-def poll_enabled_gateways() -> None:
-	for name in frappe.get_all(
-		"Field OS SMS Integration", filters={"enabled": 1, "poll_enabled": 1}, pluck="name"
-	):
-		try:
-			integration = load_sms_integration(integration_id=name)
-			messages, cursor = integration.provider.poll(integration.poll_cursor, 100)
-			service = _service(integration.company)
-			for sms in messages:
-				service.receive(integration.company, integration.id, sms)
-			frappe.db.set_value(
-				"Field OS SMS Integration",
-				name,
-				{"poll_cursor": cursor, "last_error": None},
-				update_modified=False,
-			)
-		except Exception:
-			error = "provider_poll_failed"
-			frappe.db.set_value(
-				"Field OS SMS Integration",
-				name,
-				{"last_error": error},
-				update_modified=False,
-			)
-			frappe.log_error(title=f"Field OS SMS poll failed: {name}")

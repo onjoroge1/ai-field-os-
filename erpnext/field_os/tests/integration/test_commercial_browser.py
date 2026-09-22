@@ -13,6 +13,7 @@ def run():
 		text = browser("get", "text", "[data-plan-summary]")
 		assert "trial" in text and "Allowance" in text, text
 		browser("wait", "[data-owner-support]")
+		browser("wait", "[data-job-summary]")
 		browser("screenshot", str(bench / "logs/commercial-owner.png"))
 		login()
 		assert browser("get", "count", '[data-view="commercial"]').strip() == "0"

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from datetime import UTC
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import frappe
+from frappe.utils import get_datetime, get_system_timezone
 
 from erpnext.field_os.communications.models import (
 	CommunicationAttachment,
@@ -22,6 +25,24 @@ from erpnext.field_os.communications.models import (
 	ParticipantRole,
 	ThreadState,
 )
+
+
+def _database_time(value):
+	if value is None:
+		return None
+	value = get_datetime(value)
+	if value.tzinfo is not None:
+		return value.astimezone(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
+	return value
+
+
+def _domain_time(value):
+	if value is None:
+		return None
+	value = get_datetime(value)
+	if value.tzinfo is None:
+		value = value.replace(tzinfo=ZoneInfo(get_system_timezone()))
+	return value.astimezone(UTC)
 
 
 def _value(row: Any, key: str, default=None):
@@ -61,8 +82,8 @@ class FrappeCommunicationRepository:
 			"status": thread.state.value,
 			"classification": thread.classification,
 			"assigned_to": thread.assigned_to,
-			"sla_due_at": thread.sla_due_at,
-			"last_message_at": thread.last_message_at,
+			"sla_due_at": _database_time(thread.sla_due_at),
+			"last_message_at": _database_time(thread.last_message_at),
 			"external_thread_id": thread.external_thread_id,
 			"customer": thread.links.customer_id,
 			"site": thread.links.site_id,
@@ -87,12 +108,12 @@ class FrappeCommunicationRepository:
 				raise PermissionError("Cross-tenant thread update rejected")
 			doc.update(values)
 			doc.set("participants", participants)
-			doc.save()
+			doc.save(ignore_permissions=True)
 		else:
 			doc = frappe.get_doc(
 				{"doctype": "Field OS Communication Thread", **values, "participants": participants}
 			)
-			doc.insert()
+			doc.insert(ignore_permissions=True)
 		return self._thread(doc)
 
 	def list_threads(self, company, *, states=(), channel=None, assigned_to=None, limit=50):
@@ -154,7 +175,7 @@ class FrappeCommunicationRepository:
 			"recipients_json": json.dumps([asdict(item) for item in message.recipients]),
 			"subject": message.subject,
 			"body": message.body,
-			"occurred_at": message.occurred_at,
+			"occurred_at": _database_time(message.occurred_at),
 			"delivery_status": message.delivery_state.value,
 			"external_id": message.external_id,
 			"dedupe_key": message.dedupe_key,
@@ -178,10 +199,10 @@ class FrappeCommunicationRepository:
 			if doc.company != message.company:
 				raise PermissionError("Cross-tenant message update rejected")
 			doc.update(values)
-			doc.save()
+			doc.save(ignore_permissions=True)
 		else:
 			doc = frappe.get_doc(values)
-			doc.insert()
+			doc.insert(ignore_permissions=True)
 		return self._message(doc)
 
 	def list_messages(self, company, thread_id, limit=100):
@@ -211,7 +232,7 @@ class FrappeCommunicationRepository:
 			CommunicationChannel(doc.channel),
 			ConsentState(doc.consent_status),
 			doc.source,
-			doc.updated_at,
+			_domain_time(doc.updated_at),
 			doc.proof,
 		)
 
@@ -232,11 +253,11 @@ class FrappeCommunicationRepository:
 				**filters,
 				"consent_status": preference.state.value,
 				"source": preference.source,
-				"updated_at": preference.updated_at,
+				"updated_at": _database_time(preference.updated_at),
 				"proof": preference.proof,
 			}
 		)
-		doc.save() if name else doc.insert()
+		doc.save(ignore_permissions=True) if name else doc.insert(ignore_permissions=True)
 		return preference
 
 	@staticmethod
@@ -253,8 +274,8 @@ class FrappeCommunicationRepository:
 			),
 			doc.assigned_to,
 			doc.classification,
-			doc.sla_due_at,
-			doc.last_message_at,
+			_domain_time(doc.sla_due_at),
+			_domain_time(doc.last_message_at),
 			doc.external_thread_id,
 		)
 
@@ -271,14 +292,14 @@ class FrappeCommunicationRepository:
 			tuple(
 				CommunicationParticipant(
 					item["address"],
-					ParticipantRole(item["role"]),
+					ParticipantRole(item.get("role") or item["participant_role"]),
 					item.get("display_name"),
 					item.get("contact_id"),
 				)
 				for item in recipients
 			),
 			doc.body,
-			doc.occurred_at,
+			_domain_time(doc.occurred_at),
 			DeliveryState(doc.delivery_status),
 			doc.subject,
 			doc.external_id,

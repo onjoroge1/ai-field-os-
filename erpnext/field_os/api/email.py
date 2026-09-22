@@ -11,7 +11,6 @@ from frappe import _
 from erpnext.field_os.actions.engine import ActionEngine
 from erpnext.field_os.ai.frappe_store import FrappeCacheProposalStore
 from erpnext.field_os.commercial.access import entitled
-from erpnext.field_os.commercial.metering import MeteredSender
 from erpnext.field_os.communications.email import EmailService
 from erpnext.field_os.communications.email_frappe import (
 	FrappeEmailEntityResolver,
@@ -19,6 +18,7 @@ from erpnext.field_os.communications.email_frappe import (
 	load_email_integration,
 )
 from erpnext.field_os.communications.frappe_repository import FrappeCommunicationRepository
+from erpnext.field_os.jobs.service import DurableSender
 from erpnext.field_os.security.context import resolve_tenant_context
 
 _ACTION_ENGINE = ActionEngine()
@@ -114,36 +114,9 @@ def approve_send(
 		context,
 		proposal_id,
 		idempotency_key,
-		MeteredSender(context.company, "email", integration.provider),
+		DurableSender(context, "email", integration.id),
 		integration.id,
 		integration.from_address,
 		_ACTION_ENGINE,
 	)
 	return asdict(receipt)
-
-
-def poll_enabled_mailboxes() -> None:
-	for name in frappe.get_all(
-		"Field OS Email Integration", filters={"enabled": 1, "poll_enabled": 1}, pluck="name"
-	):
-		try:
-			integration = load_email_integration(integration_id=name)
-			emails, cursor = integration.provider.poll(integration.poll_cursor, 100)
-			service = _service(integration.company)
-			for email in emails:
-				service.receive(integration.company, integration.id, email)
-			frappe.db.set_value(
-				"Field OS Email Integration",
-				name,
-				{"poll_cursor": cursor, "last_error": None},
-				update_modified=False,
-			)
-		except Exception:
-			error = "provider_poll_failed"
-			frappe.db.set_value(
-				"Field OS Email Integration",
-				name,
-				{"last_error": error},
-				update_modified=False,
-			)
-			frappe.log_error(title=f"Field OS email poll failed: {name}", message="provider_poll_failed")

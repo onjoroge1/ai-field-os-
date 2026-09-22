@@ -40,9 +40,77 @@ frappe.field_os.Commercial = class {
 				</section>`);
 			await this.billing();
 			await this.support();
+			await this.jobs();
 		} catch (error) {
 			app.renderError(__("Plan details could not be loaded."));
 		}
+	}
+
+	async jobs() {
+		const { message: jobs } = await frappe.call({
+			method: "erpnext.field_os.api.jobs.get_jobs",
+			args: { company: this.app.company },
+		});
+		if (this.app.activeView !== "commercial") return;
+		const escape = frappe.utils.escape_html;
+		const panel = $(`<section class="field-os__panel" data-job-summary><h3>${__("Background jobs")}</h3>
+		<p>${__(
+			"Unknown delivery outcomes need a provider receipt or confirmation that nothing was sent before retrying."
+		)}</p>
+		<table class="table"><thead><tr><th>${__("Job")}</th><th>${__("Status")}</th><th>${__(
+			"Attempts"
+		)}</th><th></th></tr></thead><tbody>${jobs
+			.map(
+				(job) =>
+					`<tr><td>${escape(job.kind)}<br><small>${escape(job.name)}</small></td><td>${escape(
+						job.status
+					)} ${escape(job.error_code || "")}</td><td>${job.attempts}</td><td>${
+						["Dead", "Uncertain"].includes(job.status)
+							? `<button class="btn btn-default btn-sm" data-replay="${escape(
+									job.name
+							  )}" data-state="${escape(job.status)}">${__("Review")}</button>`
+							: ""
+					}</td></tr>`
+			)
+			.join("")}</tbody></table></section>`);
+		this.app.root.find('[data-role="content"]').append(panel);
+		panel.find("[data-replay]").on("click", (event) => {
+			const button = event.currentTarget;
+			frappe.prompt(
+				[
+					{
+						fieldname: "reason",
+						fieldtype: "Small Text",
+						label: __("Reason and provider evidence"),
+						reqd: 1,
+					},
+					{
+						fieldname: "resolution",
+						fieldtype: "Select",
+						label: __("Verified outcome"),
+						options:
+							button.dataset.state === "Uncertain"
+								? "\nconfirmed_not_sent\nconfirmed_sent"
+								: "retry",
+						reqd: 1,
+					},
+					{
+						fieldname: "external_id",
+						fieldtype: "Data",
+						label: __("Provider receipt (required if sent)"),
+					},
+				],
+				async (values) => {
+					await frappe.call({
+						method: "erpnext.field_os.api.jobs.replay",
+						args: { company: this.app.company, name: button.dataset.replay, ...values },
+					});
+					await this.open();
+				},
+				__("Reconcile job"),
+				__("Record decision")
+			);
+		});
 	}
 
 	async billing() {

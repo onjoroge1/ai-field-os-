@@ -66,7 +66,7 @@ class TestSMSWorkflow(TestCase):
 		)
 		self.context = TenantContext("HVAC CO", "d@example.test", frozenset({FieldOSRole.DISPATCHER}))
 
-	def inbound(self, body, message_id="sms-1"):
+	def inbound(self, body, message_id="sms-1", minute=0):
 		return self.service.receive(
 			"HVAC CO",
 			"SMS-INT-1",
@@ -75,7 +75,7 @@ class TestSMSWorkflow(TestCase):
 				"+1 (404) 555-1000",
 				"+14045559999",
 				body,
-				datetime(2026, 9, 19, 14, tzinfo=UTC),
+				datetime(2026, 9, 19, 14, minute, tzinfo=UTC),
 			),
 		)
 
@@ -93,13 +93,21 @@ class TestSMSWorkflow(TestCase):
 
 	def test_start_restores_opt_in(self):
 		self.inbound("STOP", "sms-stop")
-		result = self.inbound("START", "sms-start")
+		result = self.inbound("START", "sms-start", minute=1)
 		self.assertEqual(result.consent_state, ConsentState.OPTED_IN)
 		self.assertTrue(
 			self.service.communications.can_send(
 				"HVAC CO", "+14045551000", CommunicationChannel.SMS, transactional=False
 			)
 		)
+
+	def test_old_or_duplicate_start_does_not_undo_later_stop(self):
+		self.inbound("START", "old-start", minute=1)
+		self.inbound("STOP", "later-stop", minute=3)
+		self.inbound("START", "old-start", minute=1)
+		self.inbound("START", "out-of-order-start", minute=2)
+		preference = self.repository.get_preference("HVAC CO", CommunicationChannel.SMS, "+14045551000")
+		self.assertEqual(preference.state, ConsentState.OPTED_OUT)
 
 	def test_template_renderer_requires_exact_variables(self):
 		template = SMSTemplate(
