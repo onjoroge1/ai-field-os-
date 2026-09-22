@@ -1,7 +1,7 @@
 """Real outbox persistence, worker commits, retries and tenant replay boundaries.
 
-Fixtures must commit because the worker intentionally commits and rolls back its
-own claim/dispatch boundaries; savepoints cannot model cross-transaction recovery.
+Worker entrypoints commit their own durable boundaries. Fixture cleanup belongs
+to the outer bench command transaction, keeping test helpers free of manual commits.
 """
 
 import unittest
@@ -44,18 +44,15 @@ class LiveJobs(unittest.TestCase):
 		for thread in self.threads:
 			frappe.db.delete("Field OS Communication Message", {"thread": thread})
 			frappe.db.delete("Field OS Communication Thread", {"name": thread})
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 	def job(self):
 		doc = service.admit(COMPANY_A, "email.poll", "fixture:" + uuid4().hex, actor=OWNER)
 		self.jobs.append(doc.name)
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		return doc
 
 	def test_durable_admission_and_duplicate_worker_delivery(self):
 		doc = self.job()
 		self.assertEqual(service.admit(COMPANY_A, doc.kind, doc.source, actor=OWNER).name, doc.name)
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		with patch.object(service, "poll") as poll:
 			service.run(doc.name)
 			service.run(doc.name)
@@ -111,7 +108,6 @@ class LiveJobs(unittest.TestCase):
 		)
 		name = frappe.db.get_value(service.JOB, {"company": COMPANY_A, "source": draft.id}, "name")
 		self.jobs.append(name)
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		self.assertEqual(repo.get_message(COMPANY_A, draft.id).delivery_state, DeliveryState.QUEUED)
 		frappe.set_user("Administrator")
 		with patch.object(service, "load_email_integration") as load:
@@ -145,7 +141,6 @@ class LiveJobs(unittest.TestCase):
 				"lease_until": now_datetime() - timedelta(seconds=1),
 			},
 		)
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		with patch.object(frappe, "enqueue"):
 			service.tick()
 		doc.reload()
@@ -154,7 +149,6 @@ class LiveJobs(unittest.TestCase):
 	def test_reconciliation_requires_tenant_and_explicit_outcome(self):
 		doc = self.job()
 		frappe.db.set_value(service.JOB, doc.name, "status", "Uncertain")
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		frappe.set_user(OWNER)
 		with self.assertRaises(frappe.PermissionError):
 			service.replay(COMPANY_B, doc.name, "Provider log checked")
