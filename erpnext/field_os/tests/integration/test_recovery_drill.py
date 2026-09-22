@@ -84,9 +84,9 @@ def run():
 			"--db-root-password",
 			root_password,
 			"--with-public-files",
-			str(stage / "public.tar.gz"),
+			str(stage / "public.tgz"),
 			"--with-private-files",
-			str(stage / "private.tar.gz"),
+			str(stage / "private.tgz"),
 			"--force",
 		)
 		command("--site", target, "migrate")

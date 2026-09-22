@@ -36,7 +36,7 @@ class BackupBundle(TestCase):
 
 	def test_tampering_fails_without_publishing_partial_plaintext(self):
 		bundle = pack(self.sources, self.root / "vault")
-		path = bundle / "private.tar.gz.enc"
+		path = bundle / "private.tgz.enc"
 		content = bytearray(path.read_bytes())
 		content[-20] ^= 1
 		path.write_bytes(content)

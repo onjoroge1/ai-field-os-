@@ -70,7 +70,7 @@ def verify(manifest_path):
 		assert frappe.db.exists("Company", company)
 	file = frappe.get_doc("File", proof["file_name"])
 	assert file.is_private and file.attached_to_name == COMPANY_A
-	assert hashlib.sha256(file.get_content()).hexdigest() == proof["file_sha256"]
+	assert hashlib.sha256(Path(file.get_full_path()).read_bytes()).hexdigest() == proof["file_sha256"]
 	credential = get_decrypted_password("User", proof["user"], "api_secret")
 	assert hashlib.sha256(credential.encode()).hexdigest() == proof["credential_sha256"]
 	from erpnext.field_os.security.context import resolve_tenant_context

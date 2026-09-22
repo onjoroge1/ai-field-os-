@@ -52,8 +52,8 @@ def take_backup(*, proof=None):
 		artifact = pack(
 			{
 				"database.sql.gz": backup.backup_path_db,
-				"public.tar.gz": backup.backup_path_files,
-				"private.tar.gz": backup.backup_path_private_files,
+				"public.tgz": backup.backup_path_files,
+				"private.tgz": backup.backup_path_private_files,
 				"site_config.json": backup.backup_path_conf,
 			},
 			destination,

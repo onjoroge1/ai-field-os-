@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from erpnext.field_os.recovery.crypto import checksum, decrypt, encrypt, read_key
 
-FILES = ("database.sql.gz", "public.tar.gz", "private.tar.gz", "site_config.json")
+FILES = ("database.sql.gz", "public.tgz", "private.tgz", "site_config.json")
 
 
 def pack(sources, destination, *, metadata=None):
