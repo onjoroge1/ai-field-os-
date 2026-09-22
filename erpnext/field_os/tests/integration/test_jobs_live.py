@@ -38,6 +38,7 @@ class LiveJobs(unittest.TestCase):
 		self.threads = []
 
 	def tearDown(self):
+		super().tearDown()
 		frappe.set_user("Administrator")
 		for name in self.jobs:
 			frappe.db.delete(service.JOB, {"name": name})
