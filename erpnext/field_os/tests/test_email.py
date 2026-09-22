@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+from dataclasses import replace
 from datetime import UTC, datetime
 from unittest import TestCase
 
@@ -163,7 +164,7 @@ class TestEmailWorkflow(TestCase):
 			)
 		failed = self.repository.get_message("HVAC CO", draft.id)
 		self.assertEqual(failed.delivery_state, DeliveryState.FAILED)
-		self.assertIn("provider unavailable", failed.error)
+		self.assertEqual("RuntimeError: delivery failed", failed.error)
 
 	def test_delivery_event_updates_existing_message(self):
 		thread = self.repository.save_thread(
@@ -196,6 +197,50 @@ class TestEmailWorkflow(TestCase):
 		)
 		self.assertEqual(updated.delivery_state, DeliveryState.BOUNCED)
 		self.assertEqual(updated.error, "bad mailbox")
+
+	def test_approval_binds_actor_body_and_sender_before_provider_call(self):
+		thread = self.repository.save_thread(
+			CommunicationThread(None, "HVAC CO", "Test", CommunicationChannel.EMAIL, ThreadState.OPEN, ())
+		)
+		draft = self.service.draft(
+			self.context,
+			thread.id,
+			"EMAIL-1",
+			"dispatch@hvac.test",
+			("customer@example.test",),
+			(),
+			"Hi",
+			"Approved body",
+		)
+		proposal = self.service.preview_send(self.context, draft.id)
+		provider = FakeEmailProvider()
+		with self.assertRaises(ValueError):
+			self.service.approve_send(
+				replace(self.context, user="other@example.test"),
+				proposal.id,
+				"forged",
+				provider,
+				"EMAIL-1",
+				"dispatch@hvac.test",
+				ActionEngine(),
+			)
+		with self.assertRaises(ValueError):
+			self.service.approve_send(
+				self.context,
+				proposal.id,
+				"sender",
+				provider,
+				"EMAIL-1",
+				"different@hvac.test",
+				ActionEngine(),
+			)
+		message = self.repository.get_message("HVAC CO", draft.id)
+		self.repository.save_message(replace(message, body="Edited after preview"))
+		with self.assertRaises(ValueError):
+			self.service.approve_send(
+				self.context, proposal.id, "stale", provider, "EMAIL-1", "dispatch@hvac.test", ActionEngine()
+			)
+		self.assertEqual(provider.sent, [])
 
 	def test_normalized_webhook_rejects_bad_signature(self):
 		payload = json.dumps(
